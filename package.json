@@ -1,0 +1,31 @@
+{
+  "name": "skillwise_aitutor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev:all": "docker-compose up -d && echo 'Dev environment is up! Frontend: http://localhost:3000 | Backend: http://localhost:3001/api'",
+    "down": "docker-compose down -v",
+    "logs": "docker-compose logs -f",
+    "logs:backend": "docker-compose logs -f backend",
+    "logs:frontend": "docker-compose logs -f frontend",
+    "logs:db": "docker-compose logs -f database",
+    "build": "docker-compose build",
+    "rebuild": "docker-compose build --no-cache",
+    "reset": "docker-compose down -v && docker-compose up -d",
+    "test": "echo \"Run tests in individual services\" && exit 0",
+    "prepare": "husky install"
+  },
+  "keywords": ["ai", "tutor", "education", "react", "node", "postgresql"],
+  "author": "",
+  "license": "ISC",
+  "description": "SkillWise AI Tutor - An intelligent tutoring system",
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "eslint": "^8.44.0",
+    "prettier": "^2.8.8"
+  }
+}

@@ -1,0 +1,144 @@
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15
+    container_name: skillwise_db
+    environment:
+      POSTGRES_DB: skillwise_db
+      POSTGRES_USER: skillwise_user
+      POSTGRES_PASSWORD: skillwise_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skillwise_user -d skillwise_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - skillwise_network
+
+  # Redis (for caching and sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: skillwise_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - skillwise_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: skillwise_backend
+    ports:
+      - "3001:3001"
+    environment:
+      # Server Configuration
+      - NODE_ENV=development
+      - PORT=3001
+      - API_PREFIX=/api
+
+      # Database Configuration
+      - DATABASE_URL=postgresql://skillwise_user:skillwise_pass@database:5432/skillwise_db
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=skillwise_db
+      - DB_USER=skillwise_user
+      - DB_PASSWORD=skillwise_pass
+
+      # JWT Configuration
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-in-production
+      - JWT_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+
+      # AI Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your-openai-api-key}
+      - OPENAI_MODEL=gpt-3.5-turbo
+      - OPENAI_MAX_TOKENS=1000
+
+      # Email Configuration
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=${SMTP_USER:-your-email@gmail.com}
+      - SMTP_PASS=${SMTP_PASS:-your-app-password}
+
+      # Security
+      - BCRYPT_ROUNDS=12
+      - CORS_ORIGIN=http://localhost:3000
+
+      # Rate Limiting
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+
+      # Redis Configuration
+      - REDIS_URL=redis://redis:6379
+
+      # Monitoring
+      - SENTRY_DSN=${SENTRY_DSN:-your-sentry-dsn-url}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - backend_logs:/app/logs
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run dev
+    networks:
+      - skillwise_network
+    restart: unless-stopped
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: skillwise_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001/api
+      - REACT_APP_ENVIRONMENT=development
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/build
+    depends_on:
+      - backend
+    command: npm start
+    networks:
+      - skillwise_network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  skillwise_network:
+    driver: bridge

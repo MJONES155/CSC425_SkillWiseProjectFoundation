@@ -1,0 +1,60 @@
+{
+  "name": "skillwise-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "react-hook-form": "^7.48.2",
+    "zod": "^3.22.4",
+    "@hookform/resolvers": "^3.3.2",
+    "axios": "^1.6.2",
+    "tailwindcss": "^3.3.6",
+    "recharts": "^2.8.0",
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --silent",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx",
+    "lint:fix": "eslint src --ext .js,.jsx --fix",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
+  },
+  "devDependencies": {
+    "react-scripts": "5.0.1",
+    "cypress": "^13.6.1",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/user-event": "^14.5.1",
+    "eslint": "^8.55.0",
+    "prettier": "^2.8.8",
+    "@axe-core/react": "^4.8.2"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "keywords": [
+    "react",
+    "frontend",
+    "education",
+    "ai",
+    "tutor"
+  ],
+  "author": "SkillWise Team",
+  "license": "MIT"
+}
