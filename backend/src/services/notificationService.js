@@ -22,7 +22,7 @@ const notificationService = {
   sendBulkNotifications: async (userIds, notification) => {
     // Implementation needed
     throw new Error('Not implemented');
-  }
+  },
 };
 
 module.exports = notificationService;

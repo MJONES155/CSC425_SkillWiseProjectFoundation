@@ -20,7 +20,7 @@ const submissionController = {
   // TODO: Update submission
   updateSubmission: async (req, res, next) => {
     // Implementation needed
-  }
+  },
 };
 
 module.exports = submissionController;

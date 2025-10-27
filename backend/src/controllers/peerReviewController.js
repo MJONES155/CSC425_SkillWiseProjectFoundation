@@ -20,7 +20,7 @@ const peerReviewController = {
   // TODO: Get review history
   getReviewHistory: async (req, res, next) => {
     // Implementation needed
-  }
+  },
 };
 
 module.exports = peerReviewController;

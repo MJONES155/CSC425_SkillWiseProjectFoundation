@@ -20,7 +20,7 @@ const leaderboardController = {
   // TODO: Get achievements
   getAchievements: async (req, res, next) => {
     // Implementation needed
-  }
+  },
 };
 
 module.exports = leaderboardController;

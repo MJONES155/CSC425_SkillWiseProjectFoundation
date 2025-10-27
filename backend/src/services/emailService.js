@@ -24,7 +24,7 @@ const emailService = {
   sendAchievementNotification: async (userEmail, achievement) => {
     // Implementation needed
     throw new Error('Not implemented');
-  }
+  },
 };
 
 module.exports = emailService;

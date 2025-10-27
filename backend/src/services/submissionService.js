@@ -34,7 +34,7 @@ const submissionService = {
   updateSubmissionStatus: async (submissionId, status) => {
     // Implementation needed
     throw new Error('Not implemented');
-  }
+  },
 };
 
 module.exports = submissionService;

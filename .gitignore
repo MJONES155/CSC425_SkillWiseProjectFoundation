@@ -199,3 +199,8 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+
+/generated/prisma
+
+.env

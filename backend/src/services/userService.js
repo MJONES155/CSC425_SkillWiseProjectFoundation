@@ -1,62 +1,67 @@
 // TODO: User service for database operations and business logic
-const db = require('../database/connection');
+//Partially Complete: userService, updateProfile, and deleteUser logical
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+const jwt = require('jsonwebtoken');
 
 const userService = {
   // TODO: Get user by ID
   getUserById: async (userId) => {
-    const { rows } = await db.query(
-      'SELECT id, first_name, last_name, email, created_at, updated_at FROM users WHERE id = $1',
-      [userId]
-    );
-    return rows[0];
+    return await prisma.user.findUnique({
+      where: { id: parseInt(userId) },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
   },
 
   // TODO: Update user profile
   updateProfile: async (userId, profileData) => {
-    const fields = [];
-    const values = [];
-    let paramCount = 1;
-
-    if (profileData.first_name) {
-      fields.push(`first_name = $${paramCount}`);
-      values.push(profileData.first_name);
-      paramCount++;
-    }
-
-    if (profileData.last_name) {
-      fields.push(`last_name = $${paramCount}`);
-      values.push(profileData.last_name);
-      paramCount++;
-    }
-
-    if (fields.length === 0) {
-      throw new Error('No valid fields to update');
-    }
-
-    values.push(userId);
-    const { rows } = await db.query(
-      `UPDATE users SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $${paramCount} 
-       RETURNING id, first_name, last_name, email, created_at, updated_at`,
-      values
-    );
-
-    return rows[0];
+    return await prisma.user.update({
+      where: { id: parseInt(userId) },
+      data: {
+        first_name: profileData.first_name || undefined,
+        last_name: profileData.last_name || undefined,
+        updated_at: new Date(),
+      },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
   },
 
   // TODO: Delete user account
   deleteUser: async (userId) => {
-    await db.query('DELETE FROM users WHERE id = $1', [userId]);
+    await prisma.user.delete({
+      where: { id: parseInt(userId) },
+    });
   },
 
   // TODO: Get user statistics
   getUserStats: async (userId) => {
-    // This would integrate with user_statistics table
-    const { rows } = await db.query(
-      'SELECT * FROM user_statistics WHERE user_id = $1',
-      [userId]
-    );
-    return rows[0] || null;
+    const user = await prisma.users.findUnique({
+      where: { id: parseInt(userId) },
+      select: {
+        id: true,
+        created_at: true,
+        last_login: true,
+      },
+    });
+    return {
+      totalGoals: 0,
+      completedChallenges: 0,
+      lastLogin: new Date(),
+    };
   },
 };
 

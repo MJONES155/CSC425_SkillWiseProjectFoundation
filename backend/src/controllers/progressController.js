@@ -20,7 +20,7 @@ const progressController = {
   // TODO: Get milestones
   getMilestones: async (req, res, next) => {
     // Implementation needed
-  }
+  },
 };
 
 module.exports = progressController;

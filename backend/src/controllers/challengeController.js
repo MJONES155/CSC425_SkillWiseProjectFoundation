@@ -25,7 +25,7 @@ const challengeController = {
   // TODO: Delete challenge
   deleteChallenge: async (req, res, next) => {
     // Implementation needed
-  }
+  },
 };
 
 module.exports = challengeController;

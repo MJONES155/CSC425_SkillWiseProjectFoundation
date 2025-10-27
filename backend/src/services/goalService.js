@@ -24,7 +24,7 @@ const goalService = {
   calculateCompletion: (goal) => {
     // Implementation needed
     return 0;
-  }
+  },
 };
 
 module.exports = goalService;

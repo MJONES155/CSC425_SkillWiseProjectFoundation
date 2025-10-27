@@ -25,7 +25,7 @@ const goalController = {
   // TODO: Delete goal
   deleteGoal: async (req, res, next) => {
     // Implementation needed
-  }
+  },
 };
 
 module.exports = goalController;

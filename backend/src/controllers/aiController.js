@@ -20,7 +20,7 @@ const aiController = {
   // TODO: Analyze learning progress
   analyzeProgress: async (req, res, next) => {
     // Implementation needed
-  }
+  },
 };
 
 module.exports = aiController;

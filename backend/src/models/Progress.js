@@ -3,7 +3,8 @@ const db = require('../database/connection');
 class Progress {
   static async findByUserId(userId) {
     try {
-      const query = 'SELECT * FROM progress WHERE user_id = $1 ORDER BY created_at DESC';
+      const query =
+        'SELECT * FROM progress WHERE user_id = $1 ORDER BY created_at DESC';
       const result = await db.query(query, [userId]);
       return result.rows;
     } catch (error) {
@@ -13,7 +14,8 @@ class Progress {
 
   static async findByUserAndChallenge(userId, challengeId) {
     try {
-      const query = 'SELECT * FROM progress WHERE user_id = $1 AND challenge_id = $2';
+      const query =
+        'SELECT * FROM progress WHERE user_id = $1 AND challenge_id = $2';
       const result = await db.query(query, [userId, challengeId]);
       return result.rows[0];
     } catch (error) {
@@ -41,13 +43,27 @@ class Progress {
 
   static async create(progressData) {
     try {
-      const { user_id, challenge_id, score, completed, points_earned, time_spent } = progressData;
+      const {
+        user_id,
+        challenge_id,
+        score,
+        completed,
+        points_earned,
+        time_spent,
+      } = progressData;
       const query = `
         INSERT INTO progress (user_id, challenge_id, score, completed, points_earned, time_spent, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
         RETURNING *
       `;
-      const result = await db.query(query, [user_id, challenge_id, score, completed, points_earned, time_spent]);
+      const result = await db.query(query, [
+        user_id,
+        challenge_id,
+        score,
+        completed,
+        points_earned,
+        time_spent,
+      ]);
       return result.rows[0];
     } catch (error) {
       throw new Error(`Error creating progress: ${error.message}`);
@@ -67,7 +83,13 @@ class Progress {
         WHERE id = $1
         RETURNING *
       `;
-      const result = await db.query(query, [progressId, score, completed, points_earned, time_spent]);
+      const result = await db.query(query, [
+        progressId,
+        score,
+        completed,
+        points_earned,
+        time_spent,
+      ]);
       return result.rows[0];
     } catch (error) {
       throw new Error(`Error updating progress: ${error.message}`);

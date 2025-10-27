@@ -24,7 +24,7 @@ const progressService = {
   checkMilestones: async (userId) => {
     // Implementation needed
     throw new Error('Not implemented');
-  }
+  },
 };
 
 module.exports = progressService;

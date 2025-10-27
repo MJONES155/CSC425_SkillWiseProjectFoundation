@@ -24,7 +24,7 @@ const aiService = {
   suggestNextChallenges: async (userId) => {
     // Implementation needed
     throw new Error('Not implemented');
-  }
+  },
 };
 
 module.exports = aiService;

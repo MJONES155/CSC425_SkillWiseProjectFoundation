@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // TODO: Server entry point with graceful shutdown and error handling
 
-const app = require('./src/app');
+const app = require('./app');
 const logger = app.get('logger');
 
 const PORT = process.env.PORT || 3001;
@@ -17,21 +17,16 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown handling
 const gracefulShutdown = (signal) => {
   logger.info(`📴 Received ${signal}. Starting graceful shutdown...`);
-  
   server.close((err) => {
     if (err) {
       logger.error('❌ Error during server shutdown:', err);
       process.exit(1);
     }
-    
     logger.info('✅ Server closed successfully');
-    
     // Close database connections, cleanup resources, etc.
     // TODO: Add database connection cleanup
-    
     process.exit(0);
   });
-
   // Force shutdown after 10 seconds
   setTimeout(() => {
     logger.error('⏰ Forced shutdown after timeout');

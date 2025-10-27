@@ -10,7 +10,7 @@ const ChallengesPage = () => {
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
-    search: ''
+    search: '',
   });
 
   // Mock data - TODO: Replace with API call
@@ -19,33 +19,36 @@ const ChallengesPage = () => {
       {
         id: 1,
         title: 'Build a React Component',
-        description: 'Create a reusable React component with props and state management.',
+        description:
+          'Create a reusable React component with props and state management.',
         category: 'Programming',
         difficulty: 'Medium',
         points: 50,
         estimatedTime: 45,
-        tags: ['React', 'JavaScript', 'Frontend']
+        tags: ['React', 'JavaScript', 'Frontend'],
       },
       {
         id: 2,
         title: 'Design a Logo',
-        description: 'Design a professional logo using design principles and color theory.',
+        description:
+          'Design a professional logo using design principles and color theory.',
         category: 'Design',
         difficulty: 'Easy',
         points: 30,
         estimatedTime: 60,
-        tags: ['Design', 'Branding', 'Creative']
+        tags: ['Design', 'Branding', 'Creative'],
       },
       {
         id: 3,
         title: 'Database Optimization',
-        description: 'Optimize a slow database query and improve performance metrics.',
+        description:
+          'Optimize a slow database query and improve performance metrics.',
         category: 'Backend',
         difficulty: 'Hard',
         points: 100,
         estimatedTime: 120,
-        tags: ['SQL', 'Database', 'Performance']
-      }
+        tags: ['SQL', 'Database', 'Performance'],
+      },
     ];
 
     setTimeout(() => {
@@ -60,22 +63,32 @@ const ChallengesPage = () => {
     let filtered = challenges;
 
     if (filters.category) {
-      filtered = filtered.filter(challenge => 
-        challenge.category.toLowerCase() === filters.category.toLowerCase()
+      filtered = filtered.filter(
+        (challenge) =>
+          challenge.category.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
     if (filters.difficulty) {
-      filtered = filtered.filter(challenge => 
-        challenge.difficulty.toLowerCase() === filters.difficulty.toLowerCase()
+      filtered = filtered.filter(
+        (challenge) =>
+          challenge.difficulty.toLowerCase() ===
+          filters.difficulty.toLowerCase()
       );
     }
 
     if (filters.search) {
-      filtered = filtered.filter(challenge =>
-        challenge.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.description.toLowerCase().includes(filters.search.toLowerCase()) ||
-        challenge.tags.some(tag => tag.toLowerCase().includes(filters.search.toLowerCase()))
+      filtered = filtered.filter(
+        (challenge) =>
+          challenge.title
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          challenge.description
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          challenge.tags.some((tag) =>
+            tag.toLowerCase().includes(filters.search.toLowerCase())
+          )
       );
     }
 
@@ -83,9 +96,9 @@ const ChallengesPage = () => {
   }, [challenges, filters]);
 
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [filterType]: value
+      [filterType]: value,
     }));
   };
 
@@ -141,7 +154,10 @@ const ChallengesPage = () => {
         </div>
 
         <div className="results-summary">
-          <p>Showing {filteredChallenges.length} of {challenges.length} challenges</p>
+          <p>
+            Showing {filteredChallenges.length} of {challenges.length}{' '}
+            challenges
+          </p>
         </div>
       </div>
 
@@ -150,7 +166,7 @@ const ChallengesPage = () => {
           <LoadingSpinner message="Loading challenges..." />
         ) : filteredChallenges.length > 0 ? (
           <div className="challenges-grid">
-            {filteredChallenges.map(challenge => (
+            {filteredChallenges.map((challenge) => (
               <ChallengeCard key={challenge.id} challenge={challenge} />
             ))}
           </div>
@@ -158,9 +174,11 @@ const ChallengesPage = () => {
           <div className="empty-state">
             <h3>No challenges found</h3>
             <p>Try adjusting your filters or search terms.</p>
-            <button 
+            <button
               className="btn-secondary"
-              onClick={() => setFilters({ category: '', difficulty: '', search: '' })}
+              onClick={() =>
+                setFilters({ category: '', difficulty: '', search: '' })
+              }
             >
               Clear Filters
             </button>

@@ -40,7 +40,7 @@ const peerReviewService = {
   submitRating: async (reviewId, rating) => {
     // Implementation needed
     throw new Error('Not implemented');
-  }
+  },
 };
 
 module.exports = peerReviewService;

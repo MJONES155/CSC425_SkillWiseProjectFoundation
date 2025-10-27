@@ -8,24 +8,28 @@ const ChallengeCard = ({ challenge }) => {
       <div className="challenge-header">
         <h3>{challenge?.title || 'Challenge Title'}</h3>
         <div className="challenge-meta">
-          <span className="difficulty">{challenge?.difficulty || 'Medium'}</span>
+          <span className="difficulty">
+            {challenge?.difficulty || 'Medium'}
+          </span>
           <span className="points">+{challenge?.points || 10} pts</span>
         </div>
       </div>
-      
+
       <div className="challenge-content">
         <p>{challenge?.description || 'Challenge description goes here...'}</p>
-        
+
         {challenge?.estimatedTime && (
           <div className="estimated-time">
             <span>⏱️ {challenge.estimatedTime} min</span>
           </div>
         )}
-        
+
         {challenge?.tags && (
           <div className="challenge-tags">
             {challenge.tags.map((tag, index) => (
-              <span key={index} className="tag">{tag}</span>
+              <span key={index} className="tag">
+                {tag}
+              </span>
             ))}
           </div>
         )}

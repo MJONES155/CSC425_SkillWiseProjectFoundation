@@ -3,7 +3,8 @@ const db = require('../database/connection');
 class Goal {
   static async findByUserId(userId) {
     try {
-      const query = 'SELECT * FROM goals WHERE user_id = $1 ORDER BY created_at DESC';
+      const query =
+        'SELECT * FROM goals WHERE user_id = $1 ORDER BY created_at DESC';
       const result = await db.query(query, [userId]);
       return result.rows;
     } catch (error) {
@@ -29,7 +30,13 @@ class Goal {
         VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
         RETURNING *
       `;
-      const result = await db.query(query, [title, description, user_id, target_date, type]);
+      const result = await db.query(query, [
+        title,
+        description,
+        user_id,
+        target_date,
+        type,
+      ]);
       return result.rows[0];
     } catch (error) {
       throw new Error(`Error creating goal: ${error.message}`);
@@ -50,7 +57,14 @@ class Goal {
         WHERE id = $1
         RETURNING *
       `;
-      const result = await db.query(query, [goalId, title, description, target_date, progress, status]);
+      const result = await db.query(query, [
+        goalId,
+        title,
+        description,
+        target_date,
+        progress,
+        status,
+      ]);
       return result.rows[0];
     } catch (error) {
       throw new Error(`Error updating goal: ${error.message}`);

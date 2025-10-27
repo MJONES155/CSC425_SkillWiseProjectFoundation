@@ -24,7 +24,7 @@ const challengeService = {
   calculateDifficulty: (challenge) => {
     // Implementation needed
     return 'medium';
-  }
+  },
 };
 
 module.exports = challengeService;

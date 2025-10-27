@@ -18,7 +18,7 @@ const ProgressPage = () => {
         completedGoals: 8,
         completedChallenges: 15,
         currentStreak: 7,
-        longestStreak: 12
+        longestStreak: 12,
       },
       recentActivity: [
         {
@@ -26,22 +26,22 @@ const ProgressPage = () => {
           type: 'challenge_completed',
           title: 'Build a React Component',
           points: 50,
-          timestamp: '2025-10-02T10:30:00Z'
+          timestamp: '2025-10-02T10:30:00Z',
         },
         {
           id: 2,
           type: 'goal_progress',
           title: 'Master Frontend Development',
           progress: 75,
-          timestamp: '2025-10-02T09:15:00Z'
+          timestamp: '2025-10-02T09:15:00Z',
         },
         {
           id: 3,
           type: 'achievement_earned',
           title: 'First Week Streak',
           points: 25,
-          timestamp: '2025-10-01T16:45:00Z'
-        }
+          timestamp: '2025-10-01T16:45:00Z',
+        },
       ],
       weeklyProgress: [
         { day: 'Mon', points: 30, timeSpent: 45 },
@@ -50,15 +50,15 @@ const ProgressPage = () => {
         { day: 'Thu', points: 75, timeSpent: 90 },
         { day: 'Fri', points: 40, timeSpent: 55 },
         { day: 'Sat', points: 60, timeSpent: 75 },
-        { day: 'Sun', points: 35, timeSpent: 40 }
+        { day: 'Sun', points: 35, timeSpent: 40 },
       ],
       skillBreakdown: [
         { skill: 'JavaScript', level: 4, progress: 80 },
         { skill: 'React', level: 3, progress: 65 },
         { skill: 'CSS', level: 5, progress: 90 },
         { skill: 'Node.js', level: 2, progress: 40 },
-        { skill: 'Database', level: 3, progress: 55 }
-      ]
+        { skill: 'Database', level: 3, progress: 55 },
+      ],
     };
 
     setTimeout(() => {
@@ -94,14 +94,21 @@ const ProgressPage = () => {
               <h3>Level {progressData.overall.level}</h3>
               <p>Current Level</p>
               <div className="progress-bar">
-                <div 
+                <div
                   className="progress-fill"
-                  style={{ 
-                    width: `${(progressData.overall.experiencePoints / progressData.overall.nextLevelXP) * 100}%` 
+                  style={{
+                    width: `${
+                      (progressData.overall.experiencePoints /
+                        progressData.overall.nextLevelXP) *
+                      100
+                    }%`,
                   }}
                 ></div>
               </div>
-              <small>{progressData.overall.experiencePoints}/{progressData.overall.nextLevelXP} XP</small>
+              <small>
+                {progressData.overall.experiencePoints}/
+                {progressData.overall.nextLevelXP} XP
+              </small>
             </div>
           </div>
 
@@ -137,7 +144,7 @@ const ProgressPage = () => {
           <div className="progress-chart-section">
             <div className="section-header">
               <h2>Weekly Activity</h2>
-              <select 
+              <select
                 value={timeframe}
                 onChange={(e) => setTimeframe(e.target.value)}
               >
@@ -151,7 +158,7 @@ const ProgressPage = () => {
               {progressData.weeklyProgress.map((day, index) => (
                 <div key={index} className="day-column">
                   <div className="day-label">{day.day}</div>
-                  <div 
+                  <div
                     className="day-bar"
                     style={{ height: `${Math.max(day.points / 2, 5)}px` }}
                     title={`${day.points} points, ${day.timeSpent} minutes`}
@@ -178,7 +185,9 @@ const ProgressPage = () => {
                       {activity.points && `+${activity.points} points`}
                       {activity.progress && `${activity.progress}% complete`}
                     </p>
-                    <small>{new Date(activity.timestamp).toLocaleDateString()}</small>
+                    <small>
+                      {new Date(activity.timestamp).toLocaleDateString()}
+                    </small>
                   </div>
                 </div>
               ))}
@@ -197,7 +206,7 @@ const ProgressPage = () => {
                 </div>
                 <div className="skill-progress">
                   <div className="progress-bar">
-                    <div 
+                    <div
                       className="progress-fill"
                       style={{ width: `${skill.progress}%` }}
                     ></div>

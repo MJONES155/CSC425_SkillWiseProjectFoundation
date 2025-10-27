@@ -3,17 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "@hookform/resolvers": "^3.3.2",
+    "axios": "^1.12.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
     "react-hook-form": "^7.48.2",
-    "zod": "^3.22.4",
-    "@hookform/resolvers": "^3.3.2",
-    "axios": "^1.6.2",
-    "tailwindcss": "^3.3.6",
+    "react-router-dom": "^6.20.1",
     "recharts": "^2.8.0",
-    "@headlessui/react": "^1.7.17",
-    "@heroicons/react": "^2.0.18"
+    "tailwindcss": "^3.3.6",
+    "zod": "^3.22.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -27,14 +27,14 @@
     "cypress:run": "cypress run"
   },
   "devDependencies": {
-    "react-scripts": "5.0.1",
-    "cypress": "^13.6.1",
-    "@testing-library/react": "^13.4.0",
+    "@axe-core/react": "^4.8.2",
     "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.5.1",
+    "cypress": "^13.6.1",
     "eslint": "^8.55.0",
     "prettier": "^2.8.8",
-    "@axe-core/react": "^4.8.2"
+    "react-scripts": "5.0.1"
   },
   "browserslist": {
     "production": [

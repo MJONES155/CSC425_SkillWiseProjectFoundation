@@ -24,7 +24,7 @@ const leaderboardService = {
   calculateAchievementPoints: (achievement) => {
     // Implementation needed
     return 0;
-  }
+  },
 };
 
 module.exports = leaderboardService;

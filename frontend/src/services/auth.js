@@ -1,5 +1,6 @@
 // TODO: Implement authentication API service
 import api from './api';
+const jwt = require('jsonwebtoken');
 
 export const authService = {
   // TODO: Login user
@@ -7,11 +8,11 @@ export const authService = {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, refreshToken, user } = response.data;
-      
+
       localStorage.setItem('authToken', token);
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(user));
-      
+
       return { token, refreshToken, user };
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Login failed');
@@ -48,7 +49,7 @@ export const authService = {
       const refreshToken = localStorage.getItem('refreshToken');
       const response = await api.post('/auth/refresh', { refreshToken });
       const { token } = response.data;
-      
+
       localStorage.setItem('authToken', token);
       return token;
     } catch (error) {
@@ -65,7 +66,7 @@ export const authService = {
   // TODO: Check if user is authenticated
   isAuthenticated() {
     return !!localStorage.getItem('authToken');
-  }
+  },
 };
 
 export default authService;
