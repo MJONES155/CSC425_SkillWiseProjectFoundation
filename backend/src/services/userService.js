@@ -11,11 +11,11 @@ const userService = {
       where: { id: parseInt(userId) },
       select: {
         id: true,
-        first_name: true,
-        last_name: true,
+        firstName: true,
+        lastName: true,
         email: true,
-        created_at: true,
-        updated_at: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   },
@@ -25,17 +25,17 @@ const userService = {
     return await prisma.user.update({
       where: { id: parseInt(userId) },
       data: {
-        first_name: profileData.first_name || undefined,
-        last_name: profileData.last_name || undefined,
-        updated_at: new Date(),
+        firstName: profileData.firstName || undefined,
+        lastName: profileData.lastName || undefined,
+        updatedAt: new Date(),
       },
       select: {
         id: true,
-        first_name: true,
-        last_name: true,
+        firstName: true,
+        lastName: true,
         email: true,
-        created_at: true,
-        updated_at: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   },
@@ -49,12 +49,12 @@ const userService = {
 
   // TODO: Get user statistics
   getUserStats: async (userId) => {
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: parseInt(userId) },
       select: {
         id: true,
-        created_at: true,
-        last_login: true,
+        createdAt: true,
+        lastLogin: true,
       },
     });
     return {

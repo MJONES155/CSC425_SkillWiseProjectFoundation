@@ -130,6 +130,17 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await apiService.auth.login(credentials);
+
+      // Check if the API call was successful
+      if (!response.success) {
+        const errorMessage = response.error || 'Login failed';
+        dispatch({
+          type: AUTH_ACTIONS.SET_ERROR,
+          payload: errorMessage,
+        });
+        return { success: false, error: errorMessage };
+      }
+
       const { user, accessToken } = response.data;
 
       // Store access token
@@ -158,6 +169,17 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await apiService.auth.register(userData);
+
+      // Check if the API call was successful
+      if (!response.success) {
+        const errorMessage = response.error || 'Registration failed';
+        dispatch({
+          type: AUTH_ACTIONS.SET_ERROR,
+          payload: errorMessage,
+        });
+        return { success: false, error: errorMessage };
+      }
+
       const { user, accessToken } = response.data;
 
       // Store access token

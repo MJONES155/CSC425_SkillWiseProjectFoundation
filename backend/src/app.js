@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const pino = require('pino');
 const pinoHttp = require('pino-http');
 
@@ -105,6 +106,9 @@ app.use(
     limit: '10mb',
   })
 );
+
+// Cookie parsing middleware
+app.use(cookieParser());
 
 // Health check endpoint
 app.get('/healthz', (req, res) => {

@@ -1,12 +1,19 @@
 // TODO: Implement main navigation header component
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import '../../styles/Header.css';
 
 const Header = () => {
   // TODO: Add navigation menu, user profile dropdown, notifications
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   return (
     <header className="header">
       <div className="container">
@@ -34,7 +41,9 @@ const Header = () => {
             <>
               <span>Welcome, {user.firstName}!</span>
               <Link to="/profile">Profile</Link>
-              {/* You could add a logout button here later */}
+              <button onClick={handleLogout} className="logout-button">
+                Logout
+              </button>
             </>
           ) : (
             <>
