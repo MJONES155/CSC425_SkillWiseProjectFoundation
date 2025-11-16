@@ -276,6 +276,9 @@ export const apiService = {
   challenges: {
     getAll: (params) => api.get('/challenges', { params }),
     getById: (id) => api.get(`/challenges/${id}`),
+    create: (challenge) => api.post('/challenges', challenge),
+    update: (id, challenge) => api.put(`/challenges/${id}`, challenge),
+    delete: (id) => api.delete(`/challenges/${id}`),
     submit: (id, submission) =>
       api.post(`/challenges/${id}/submit`, submission),
     getSubmissions: (id) => api.get(`/challenges/${id}/submissions`),

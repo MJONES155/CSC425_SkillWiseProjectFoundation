@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const challengeController = require('../controllers/challengeController');
 const auth = require('../middleware/auth');
+const { challengeValidation } = require('../middleware/validation');
 
 // TODO: Add GET / route for all challenges
 router.get('/', auth, challengeController.getChallenges);
@@ -11,10 +12,20 @@ router.get('/', auth, challengeController.getChallenges);
 router.get('/:id', auth, challengeController.getChallengeById);
 
 // TODO: Add POST / route for creating challenge (admin only)
-router.post('/', auth, challengeController.createChallenge);
+router.post(
+  '/',
+  auth,
+  challengeValidation,
+  challengeController.createChallenge
+);
 
 // TODO: Add PUT /:id route for updating challenge (admin only)
-router.put('/:id', auth, challengeController.updateChallenge);
+router.put(
+  '/:id',
+  auth,
+  challengeValidation,
+  challengeController.updateChallenge
+);
 
 // TODO: Add DELETE /:id route for deleting challenge (admin only)
 router.delete('/:id', auth, challengeController.deleteChallenge);

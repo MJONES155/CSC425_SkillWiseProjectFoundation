@@ -24,9 +24,12 @@ const Header = () => {
           {/* Only link to dashboard if user */}
           {user ? (
             <>
-              <Link to="/dashboard">Dashboard</Link>
-              <Link to="/goals">Goals</Link>
-              <Link to="/challenges">Challenges</Link>
+              <Link to="/dashboard">Dashboard 📊</Link>
+              <Link to="/goals">Goals 🎯</Link>
+              <Link to="/challenges">Challenges 🚀</Link>
+              <Link to="/progress">Progress 📈</Link>
+              <Link to="/leaderboard">Leaderboard 🏆</Link>
+              <Link to="/peer-review">Peer Review 👥</Link>
             </>
           ) : (
             <>

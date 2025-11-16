@@ -47,7 +47,8 @@ const goalSchema = z.object({
     description: z.string().optional(),
     category: z.string().optional(),
     difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
-    targetCompletionDate: z.string().datetime().optional(),
+    // Accept date-only strings like 'YYYY-MM-DD' or full ISO datetime
+    targetCompletionDate: z.string().optional(),
   }),
 });
 
@@ -59,11 +60,16 @@ const challengeSchema = z.object({
       .max(255, 'Title too long'),
     description: z.string().min(1, 'Description is required'),
     instructions: z.string().min(1, 'Instructions are required'),
-    category: z.string().min(1, 'Category is required'),
-    difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
-    estimatedTimeMinutes: z.number().int().positive().optional(),
-    pointsReward: z.number().int().positive().default(10),
-    maxAttempts: z.number().int().positive().default(3),
+    category: z.string().optional(),
+    difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
+    estimatedTimeMinutes: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .nullable(),
+    pointsReward: z.coerce.number().int().positive().optional().nullable(),
+    maxAttempts: z.coerce.number().int().positive().optional().nullable(),
   }),
 });
 

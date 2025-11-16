@@ -1,7 +1,7 @@
 // TODO: Implement goal card component
 import React from 'react';
 
-const GoalCard = ({ goal }) => {
+const GoalCard = ({ goal, onEdit, onDelete }) => {
   // TODO: Add progress bar, completion status, actions
   return (
     <div className="goal-card">
@@ -17,17 +17,34 @@ const GoalCard = ({ goal }) => {
           <div className="progress-bar">
             <div
               className="progress-fill"
-              style={{ width: `${goal?.progress || 0}%` }}
+              style={{ width: `${goal?.progressPercentage || 0}%` }}
             ></div>
           </div>
-          <span className="progress-text">{goal?.progress || 0}%</span>
+          <span className="progress-text">
+            {goal?.progressPercentage || 0}%
+          </span>
         </div>
       </div>
 
       <div className="goal-footer">
-        <span className="goal-difficulty">{goal?.difficulty || 'Medium'}</span>
-        {goal?.targetDate && (
-          <span className="goal-date">Due: {goal.targetDate}</span>
+        <span className="goal-difficulty">{goal?.difficulty || 'medium'}</span>
+        {goal?.targetCompletionDate && (
+          <span className="goal-date">
+            Due: {new Date(goal.targetCompletionDate).toLocaleDateString()}
+          </span>
+        )}
+      </div>
+
+      <div className="goal-actions">
+        {onEdit && (
+          <button className="btn-secondary" onClick={() => onEdit(goal)}>
+            Edit
+          </button>
+        )}
+        {onDelete && (
+          <button className="btn-danger" onClick={() => onDelete(goal.id)}>
+            Delete
+          </button>
         )}
       </div>
     </div>

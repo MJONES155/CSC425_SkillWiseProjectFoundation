@@ -1,61 +1,41 @@
 // TODO: Implement challenges browsing and participation page
 import React, { useState, useEffect } from 'react';
 import ChallengeCard from '../components/challenges/ChallengeCard';
+import ChallengeForm from '../components/challenges/ChallengeForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { apiService } from '../services/api';
 
 const ChallengesPage = () => {
   const [challenges, setChallenges] = useState([]);
   const [filteredChallenges, setFilteredChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editingChallenge, setEditingChallenge] = useState(null);
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
     search: '',
   });
 
-  // Mock data - TODO: Replace with API call
-  useEffect(() => {
-    const mockChallenges = [
-      {
-        id: 1,
-        title: 'Build a React Component',
-        description:
-          'Create a reusable React component with props and state management.',
-        category: 'Programming',
-        difficulty: 'Medium',
-        points: 50,
-        estimatedTime: 45,
-        tags: ['React', 'JavaScript', 'Frontend'],
-      },
-      {
-        id: 2,
-        title: 'Design a Logo',
-        description:
-          'Design a professional logo using design principles and color theory.',
-        category: 'Design',
-        difficulty: 'Easy',
-        points: 30,
-        estimatedTime: 60,
-        tags: ['Design', 'Branding', 'Creative'],
-      },
-      {
-        id: 3,
-        title: 'Database Optimization',
-        description:
-          'Optimize a slow database query and improve performance metrics.',
-        category: 'Backend',
-        difficulty: 'Hard',
-        points: 100,
-        estimatedTime: 120,
-        tags: ['SQL', 'Database', 'Performance'],
-      },
-    ];
-
-    setTimeout(() => {
-      setChallenges(mockChallenges);
-      setFilteredChallenges(mockChallenges);
+  const loadChallenges = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await apiService.challenges.getAll();
+      const challengesData = res.data?.data ?? res.data ?? [];
+      setChallenges(challengesData);
+      setFilteredChallenges(challengesData);
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to load challenges.');
+      console.error('Error loading challenges:', e);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    loadChallenges();
   }, []);
 
   // Filter challenges based on current filters
@@ -65,14 +45,14 @@ const ChallengesPage = () => {
     if (filters.category) {
       filtered = filtered.filter(
         (challenge) =>
-          challenge.category.toLowerCase() === filters.category.toLowerCase()
+          challenge.category?.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
     if (filters.difficulty) {
       filtered = filtered.filter(
         (challenge) =>
-          challenge.difficulty.toLowerCase() ===
+          challenge.difficulty?.toLowerCase() ===
           filters.difficulty.toLowerCase()
       );
     }
@@ -81,12 +61,12 @@ const ChallengesPage = () => {
       filtered = filtered.filter(
         (challenge) =>
           challenge.title
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(filters.search.toLowerCase()) ||
           challenge.description
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(filters.search.toLowerCase()) ||
-          challenge.tags.some((tag) =>
+          challenge.tags?.some((tag) =>
             tag.toLowerCase().includes(filters.search.toLowerCase())
           )
       );
@@ -102,12 +82,61 @@ const ChallengesPage = () => {
     }));
   };
 
+  const handleCreateChallenge = () => {
+    setEditingChallenge(null);
+    setShowForm(true);
+  };
+
+  const handleEditChallenge = (challenge) => {
+    setEditingChallenge(challenge);
+    setShowForm(true);
+  };
+
+  const handleDeleteChallenge = async (challengeId) => {
+    if (window.confirm('Are you sure you want to delete this challenge?')) {
+      try {
+        await apiService.challenges.delete(challengeId);
+        await loadChallenges();
+      } catch (e) {
+        setError(e.response?.data?.message || 'Failed to delete challenge.');
+        console.error('Error deleting challenge:', e);
+      }
+    }
+  };
+
+  const handleChallengeSubmit = async (challengeData) => {
+    try {
+      setError('');
+      if (editingChallenge) {
+        await apiService.challenges.update(editingChallenge.id, challengeData);
+      } else {
+        await apiService.challenges.create(challengeData);
+      }
+      setShowForm(false);
+      setEditingChallenge(null);
+      await loadChallenges();
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to save challenge.');
+      console.error('Error saving challenge:', e);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingChallenge(null);
+  };
+
   return (
     <div className="challenges-page">
       <div className="page-header">
         <h1>Learning Challenges</h1>
         <p>Enhance your skills with hands-on learning experiences</p>
+        <button className="btn-primary" onClick={handleCreateChallenge}>
+          Create New Challenge
+        </button>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="challenges-filters">
         <div className="filters-row">
@@ -167,7 +196,12 @@ const ChallengesPage = () => {
         ) : filteredChallenges.length > 0 ? (
           <div className="challenges-grid">
             {filteredChallenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} />
+              <ChallengeCard
+                key={challenge.id}
+                challenge={challenge}
+                onEdit={handleEditChallenge}
+                onDelete={handleDeleteChallenge}
+              />
             ))}
           </div>
         ) : (
@@ -185,6 +219,14 @@ const ChallengesPage = () => {
           </div>
         )}
       </div>
+
+      {showForm && (
+        <ChallengeForm
+          onSubmit={handleChallengeSubmit}
+          onClose={handleCloseForm}
+          initialChallenge={editingChallenge}
+        />
+      )}
     </div>
   );
 };

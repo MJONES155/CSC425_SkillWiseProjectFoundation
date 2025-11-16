@@ -53,53 +53,53 @@ model challenges {
   description            String
   instructions           String
   category               String            @db.VarChar(100)
-  difficulty_level       String?           @default("medium") @db.VarChar(20)
-  estimated_time_minutes Int?
-  points_reward          Int?              @default(10)
-  max_attempts           Int?              @default(3)
-  requires_peer_review   Boolean?          @default(false)
-  is_active              Boolean?          @default(true)
-  created_by             Int?
+  difficulty             String?           @map("difficulty_level") @default("medium") @db.VarChar(20)
+  estimatedTimeMinutes   Int?              @map("estimated_time_minutes")
+  pointsReward           Int?              @map("points_reward") @default(10)
+  maxAttempts            Int?              @map("max_attempts") @default(3)
+  requiresPeerReview     Boolean?          @map("requires_peer_review") @default(false)
+  isActive               Boolean?          @map("is_active") @default(true)
+  createdBy              Int?              @map("created_by")
   tags                   String[]
   prerequisites          String[]
-  learning_objectives    String[]
-  created_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  users                  User?            @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  learningObjectives     String[]          @map("learning_objectives")
+  createdAt              DateTime?         @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime?         @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users                  User?            @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
   progress_events        progress_events[]
   submissions            submissions[]
 
   @@index([category], map: "idx_challenges_category")
-  @@index([created_by], map: "idx_challenges_created_by")
-  @@index([difficulty_level], map: "idx_challenges_difficulty")
-  @@index([is_active], map: "idx_challenges_is_active")
+  @@index([createdBy], map: "idx_challenges_created_by")
+  @@index([difficulty], map: "idx_challenges_difficulty")
+  @@index([isActive], map: "idx_challenges_is_active")
   @@index([tags], map: "idx_challenges_tags", type: Gin)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model goals {
   id                     Int               @id @default(autoincrement())
-  user_id                Int
+  userId                 Int               @map("user_id")
   title                  String            @db.VarChar(255)
   description            String?
   category               String?           @db.VarChar(100)
-  difficulty_level       String?           @default("medium") @db.VarChar(20)
-  target_completion_date DateTime?         @db.Date
-  is_completed           Boolean?          @default(false)
-  completion_date        DateTime?         @db.Timestamptz(6)
-  progress_percentage    Int?              @default(0)
-  points_reward          Int?              @default(0)
-  is_public              Boolean?          @default(false)
-  created_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  users                  User             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  difficulty             String?            @map("difficulty_level") @default("medium") @db.VarChar(20)
+  targetCompletionDate DateTime?           @map("target_completion_date") @db.Date
+  isCompleted           Boolean?           @map("is_completed") @default(false)
+  completionDate        DateTime?          @map("completion_date") @db.Timestamptz(6)
+  progressPercentage    Int?               @map("progress_percentage")@default(0)
+  pointsReward          Int?               @map("points_reward") @default(0)
+  isPublic              Boolean?           @map("is_public") @default(false)
+  createdAt             DateTime?         @map("created_at")@default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime?         @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users                  User             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   progress_events        progress_events[]
 
   @@index([category], map: "idx_goals_category")
-  @@index([completion_date], map: "idx_goals_completion_date")
-  @@index([difficulty_level], map: "idx_goals_difficulty")
-  @@index([is_completed], map: "idx_goals_is_completed")
-  @@index([user_id], map: "idx_goals_user_id")
+  @@index([completionDate], map: "idx_goals_completion_date")
+  @@index([difficulty], map: "idx_goals_difficulty")
+  @@index([isCompleted], map: "idx_goals_is_completed")
+  @@index([userId], map: "idx_goals_user_id")
 }
 
 model leaderboard {
