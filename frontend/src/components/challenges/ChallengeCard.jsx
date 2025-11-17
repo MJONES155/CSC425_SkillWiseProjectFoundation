@@ -1,72 +1,144 @@
-// TODO: Implement challenge card component
 import React from 'react';
+import { Link } from 'react-router-dom';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 
-const ChallengeCard = ({ challenge, onEdit, onDelete, onStart }) => {
+const ChallengeCard = ({
+  challenge,
+  onEdit,
+  onDelete,
+  onStart,
+  onComplete,
+}) => {
+  const difficulty = challenge?.difficulty || 'Medium';
+  const status = challenge?.status || null;
+
   return (
-    <div className="challenge-card">
-      <div className="challenge-header">
-        <h3>{challenge?.title || 'Challenge Title'}</h3>
-        <div className="challenge-meta">
-          <span
-            className={`difficulty difficulty-${
-              challenge?.difficulty?.toLowerCase() || 'medium'
-            }`}
-          >
-            {challenge?.difficulty || 'Medium'}
-          </span>
-          <span className="points">+{challenge?.pointsReward || 10} pts</span>
-        </div>
-      </div>
+    <Card sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          mb: 1,
+        }}
+      >
+        <Typography variant="h6">
+          {challenge?.title || 'Challenge Title'}
+        </Typography>
 
-      <div className="challenge-content">
-        <p className="description">
+        <Stack spacing={1} alignItems="flex-end">
+          <Chip label={difficulty} color="secondary" size="small" />
+          <Chip
+            label={`+${challenge?.pointsReward || 10} pts`}
+            color="primary"
+            size="small"
+            variant="outlined"
+          />
+          {status && (
+            <Chip
+              label={status.replace('_', ' ')}
+              color={status === 'completed' ? 'success' : 'warning'}
+              size="small"
+            />
+          )}
+        </Stack>
+      </Box>
+
+      {/* Content */}
+      <CardContent sx={{ p: 0, mb: 1 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
           {challenge?.description || 'Challenge description goes here...'}
-        </p>
+        </Typography>
 
+        {/* Instructions */}
         {challenge?.instructions && (
-          <div className="instructions">
-            <strong>Instructions:</strong>
-            <p>{challenge.instructions}</p>
-          </div>
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="subtitle2">Instructions:</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {challenge.instructions}
+            </Typography>
+          </Box>
         )}
 
-        {challenge?.category && (
-          <div className="category">
-            <span>📁 {challenge.category}</span>
-          </div>
-        )}
+        {/* Metadata */}
+        <Stack spacing={1} sx={{ mb: 1 }}>
+          {challenge?.category && (
+            <Typography variant="body2">📁 {challenge.category}</Typography>
+          )}
 
-        {challenge?.estimatedTimeMinutes && (
-          <div className="estimated-time">
-            <span>⏱️ {challenge.estimatedTimeMinutes} min</span>
-          </div>
-        )}
+          {challenge?.estimatedTimeMinutes && (
+            <Typography variant="body2">
+              ⏱️ {challenge.estimatedTimeMinutes} min
+            </Typography>
+          )}
 
-        {challenge?.maxAttempts && (
-          <div className="max-attempts">
-            <span>🎯 Max attempts: {challenge.maxAttempts}</span>
-          </div>
-        )}
-      </div>
+          {challenge?.maxAttempts && (
+            <Typography variant="body2">
+              🎯 Max attempts: {challenge.maxAttempts}
+            </Typography>
+          )}
 
-      <div className="challenge-footer">
+          {typeof challenge?.goalId === 'number' && (
+            <Typography variant="body2">
+              <Link to={`/goals/${challenge.goalId}`}>View Goal</Link>
+            </Typography>
+          )}
+        </Stack>
+      </CardContent>
+
+      {/* Actions */}
+      <CardActions sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
         {onStart && (
-          <button className="btn-primary" onClick={() => onStart(challenge)}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => onStart(challenge)}
+          >
             Start Challenge
-          </button>
+          </Button>
         )}
+
+        {onComplete && challenge?.status !== 'completed' && (
+          <Button
+            size="small"
+            color="success"
+            variant="contained"
+            onClick={() => onComplete(challenge.id)}
+          >
+            Mark Complete
+          </Button>
+        )}
+
         {onEdit && (
-          <button className="btn-secondary" onClick={() => onEdit(challenge)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => onEdit(challenge)}
+          >
             Edit
-          </button>
+          </Button>
         )}
+
         {onDelete && (
-          <button className="btn-danger" onClick={() => onDelete(challenge.id)}>
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            onClick={() => onDelete(challenge.id)}
+          >
             Delete
-          </button>
+          </Button>
         )}
-      </div>
-    </div>
+      </CardActions>
+    </Card>
   );
 };
 

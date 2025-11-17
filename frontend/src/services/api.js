@@ -282,6 +282,7 @@ export const apiService = {
     submit: (id, submission) =>
       api.post(`/challenges/${id}/submit`, submission),
     getSubmissions: (id) => api.get(`/challenges/${id}/submissions`),
+    complete: (id) => api.post(`/challenges/${id}/complete`),
   },
 
   // Progress methods

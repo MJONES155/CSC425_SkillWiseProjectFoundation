@@ -104,6 +104,17 @@ const ChallengesPage = () => {
     }
   };
 
+  const handleCompleteChallenge = async (challengeId) => {
+    try {
+      setError('');
+      await apiService.challenges.complete(challengeId);
+      await loadChallenges();
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to complete challenge.');
+      console.error('Error completing challenge:', e);
+    }
+  };
+
   const handleChallengeSubmit = async (challengeData) => {
     try {
       setError('');
@@ -201,6 +212,7 @@ const ChallengesPage = () => {
                 challenge={challenge}
                 onEdit={handleEditChallenge}
                 onDelete={handleDeleteChallenge}
+                onComplete={handleCompleteChallenge}
               />
             ))}
           </div>

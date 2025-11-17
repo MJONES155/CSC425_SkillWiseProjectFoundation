@@ -67,12 +67,10 @@ const goalController = {
         req.body
       );
       if (!updatedGoal) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: 'Goal not found or not owned by user',
-          });
+        return res.status(404).json({
+          success: false,
+          message: 'Goal not found or not owned by user',
+        });
       } else {
         res.status(200).json({ success: true, data: updatedGoal });
       }
@@ -91,12 +89,10 @@ const goalController = {
       }
       const deletedCount = await goalService.deleteGoal(goalId, userId);
       if (!deletedCount) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: 'Goal not found or not owned by user',
-          });
+        return res.status(404).json({
+          success: false,
+          message: 'Goal not found or not owned by user',
+        });
       } else {
         res
           .status(200)

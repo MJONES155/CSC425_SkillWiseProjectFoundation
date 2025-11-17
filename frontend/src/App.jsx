@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import GoalsPage from './pages/GoalsPage';
+import GoalDetail from './pages/GoalDetail';
 import ChallengesPage from './pages/ChallengesPage';
 import ProgressPage from './pages/ProgressPage';
 import LeaderboardPage from './pages/LeaderboardPage';
@@ -55,6 +56,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <GoalsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/goals/:id"
+                element={
+                  <ProtectedRoute>
+                    <GoalDetail />
                   </ProtectedRoute>
                 }
               />

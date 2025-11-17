@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { apiService } from '../../services/api';
+import './ChallengeForm.css';
 
 const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
   const [formData, setFormData] = useState({
@@ -6,11 +8,17 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
     description: '',
     instructions: '',
     category: '',
-    difficulty: 'medium',
+    difficulty: 'Medium',
     estimatedTimeMinutes: 30,
     pointsReward: 10,
     maxAttempts: 3,
+    goalId: '', // optional linkage
+    prerequisites: [], // array of challenge IDs
   });
+
+  const [goals, setGoals] = useState([]);
+  const [allChallenges, setAllChallenges] = useState([]);
+  const [prereqWarning, setPrereqWarning] = useState('');
 
   useEffect(() => {
     if (initialChallenge) {
@@ -19,13 +27,34 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
         description: initialChallenge.description || '',
         instructions: initialChallenge.instructions || '',
         category: initialChallenge.category || '',
-        difficulty: initialChallenge.difficulty || 'medium',
+        difficulty: initialChallenge.difficulty || 'Medium',
         estimatedTimeMinutes: initialChallenge.estimatedTimeMinutes || 30,
         pointsReward: initialChallenge.pointsReward || 10,
         maxAttempts: initialChallenge.maxAttempts || 3,
+        goalId: initialChallenge.goalId || '',
+        prerequisites: Array.isArray(initialChallenge.prerequisites)
+          ? initialChallenge.prerequisites.map((id) => parseInt(id, 10))
+          : [],
       });
     }
   }, [initialChallenge]);
+
+  // Load user's goals and challenges for selection
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [goalsRes, challengesRes] = await Promise.all([
+          apiService.goals.getAll(),
+          apiService.challenges.getAll(),
+        ]);
+        setGoals(goalsRes.data?.data ?? goalsRes.data ?? []);
+        setAllChallenges(challengesRes.data?.data ?? challengesRes.data ?? []);
+      } catch (e) {
+        console.warn('Failed to load selectable goals/challenges');
+      }
+    };
+    load();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -33,6 +62,25 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
 
     if (type === 'number') {
       processedValue = value === '' ? null : parseInt(value, 10);
+    } else if (name === 'goalId') {
+      // When goal changes, drop prerequisites that don't match the selected goal
+      const newGoalId = value ? parseInt(value, 10) : '';
+      let newPrereqs = formData.prerequisites;
+      if (newGoalId && Array.isArray(newPrereqs) && newPrereqs.length) {
+        const allowedIds = new Set(
+          allChallenges.filter((c) => c.goalId === newGoalId).map((c) => c.id)
+        );
+        const removed = newPrereqs.filter((id) => !allowedIds.has(id));
+        newPrereqs = newPrereqs.filter((id) => allowedIds.has(id));
+        if (removed.length) {
+          setPrereqWarning(
+            `Removed ${removed.length} prerequisite(s) not linked to the selected goal.`
+          );
+          setTimeout(() => setPrereqWarning(''), 4000);
+        }
+      }
+      setFormData((prev) => ({ ...prev, prerequisites: newPrereqs }));
+      processedValue = newGoalId;
     } else {
       processedValue = value;
     }
@@ -43,9 +91,49 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
     }));
   };
 
+  // Add a prerequisite from the dropdown
+  const handleAddPrerequisite = (e) => {
+    const challengeId = parseInt(e.target.value, 10);
+    if (challengeId && !formData.prerequisites.includes(challengeId)) {
+      setFormData((prev) => ({
+        ...prev,
+        prerequisites: [...prev.prerequisites, challengeId],
+      }));
+    }
+    e.target.value = ''; // Reset dropdown
+  };
+
+  // Remove a prerequisite
+  const handleRemovePrerequisite = (challengeId) => {
+    setFormData((prev) => ({
+      ...prev,
+      prerequisites: prev.prerequisites.filter((id) => id !== challengeId),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = {
+      ...formData,
+      goalId: formData.goalId ? parseInt(formData.goalId, 10) : undefined,
+      prerequisites: Array.isArray(formData.prerequisites)
+        ? formData.prerequisites
+        : [],
+    };
+    // Front-end guard: if goal selected, ensure all prereqs belong to same goal
+    if (payload.goalId) {
+      const mismatched = payload.prerequisites.filter((id) => {
+        const ch = allChallenges.find((c) => c.id === id);
+        return ch && ch.goalId !== payload.goalId;
+      });
+      if (mismatched.length) {
+        setPrereqWarning(
+          'Some prerequisites belong to a different goal. Please fix and try again.'
+        );
+        return;
+      }
+    }
+    onSubmit(payload);
   };
 
   return (
@@ -133,6 +221,22 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
 
           <div className="form-row">
             <div className="form-group">
+              <label htmlFor="goalId">Link to Goal (optional)</label>
+              <select
+                id="goalId"
+                name="goalId"
+                value={formData.goalId}
+                onChange={handleChange}
+              >
+                <option value="">No goal</option>
+                {goals.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
               <label htmlFor="estimatedTimeMinutes">
                 Estimated Time (minutes)
               </label>
@@ -169,6 +273,66 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
                 min={1}
               />
             </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="prerequisite-select">Prerequisite Challenges</label>
+            {formData.prerequisites.length > 0 && (
+              <div className="prerequisite-tags">
+                {formData.prerequisites.map((prereqId) => {
+                  const challenge = allChallenges.find(
+                    (c) => c.id === prereqId
+                  );
+                  return (
+                    <div key={prereqId} className="prerequisite-tag">
+                      <span>
+                        {challenge ? challenge.title : `Challenge #${prereqId}`}
+                      </span>
+                      <button
+                        type="button"
+                        className="remove-tag-btn"
+                        onClick={() => handleRemovePrerequisite(prereqId)}
+                        aria-label="Remove prerequisite"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <select
+              id="prerequisite-select"
+              onChange={handleAddPrerequisite}
+              defaultValue=""
+            >
+              <option value="">+ Add prerequisite challenge</option>
+              {(formData.goalId
+                ? allChallenges.filter(
+                    (c) => c.goalId === parseInt(formData.goalId, 10)
+                  )
+                : allChallenges
+              )
+                .filter(
+                  (c) => !initialChallenge || c.id !== initialChallenge.id
+                )
+                .filter((c) => !formData.prerequisites.includes(c.id))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}{' '}
+                    {c.status ? `(${c.status.replace('_', ' ')})` : ''}
+                  </option>
+                ))}
+            </select>
+            {prereqWarning && (
+              <div className="warning-text" role="alert">
+                {prereqWarning}
+              </div>
+            )}
+            <small className="help-text">
+              Learners must complete selected challenges before this one can be
+              marked completed.
+            </small>
           </div>
 
           <div className="form-actions">

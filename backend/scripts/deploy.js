@@ -7,19 +7,19 @@ const path = require('path');
 async function deploy() {
   try {
     console.log('Starting deployment process...');
-    
+
     // TODO: Run tests
     console.log('Running tests...');
-    
+
     // TODO: Build application
     console.log('Building application...');
-    
+
     // TODO: Run migrations
     console.log('Running database migrations...');
-    
+
     // TODO: Deploy to production
     console.log('Deploying to production...');
-    
+
     console.log('Deployment completed successfully!');
   } catch (error) {
     console.error('Deployment failed:', error);

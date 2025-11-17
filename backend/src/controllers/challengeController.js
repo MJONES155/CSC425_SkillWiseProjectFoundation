@@ -70,12 +70,10 @@ const challengeController = {
         req.body
       );
       if (!updatedChallenge) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: 'Challenge not found or not owned by user',
-          });
+        return res.status(404).json({
+          success: false,
+          message: 'Challenge not found or not owned by user',
+        });
       } else {
         res.status(200).json({ success: true, data: updatedChallenge });
       }
@@ -97,17 +95,39 @@ const challengeController = {
         userId
       );
       if (!deletedCount) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: 'Challenge not found or not owned by user',
-          });
+        return res.status(404).json({
+          success: false,
+          message: 'Challenge not found or not owned by user',
+        });
       } else {
         res
           .status(200)
           .json({ success: true, message: 'Challenge deleted successfully' });
       }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Mark challenge as completed
+  completeChallenge: async (req, res, next) => {
+    try {
+      const challengeId = req.params.id;
+      const userId = req.user.id;
+      if (!challengeId) {
+        return res.status(400).json({ message: 'Challenge ID is required' });
+      }
+      const updated = await challengeService.completeChallenge(
+        challengeId,
+        userId
+      );
+      res
+        .status(200)
+        .json({
+          success: true,
+          data: updated,
+          message: 'Challenge marked as completed',
+        });
     } catch (error) {
       next(error);
     }

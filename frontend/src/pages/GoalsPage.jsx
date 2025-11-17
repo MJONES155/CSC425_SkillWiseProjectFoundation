@@ -72,6 +72,36 @@ const GoalsPage = () => {
     setShowForm(true);
   };
 
+  const handleMarkComplete = async (id) => {
+    try {
+      setLoading(true);
+      setError('');
+      await apiService.goals.update(id, {
+        isCompleted: true,
+        progressPercentage: 100,
+      });
+      await loadGoals();
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to mark goal complete');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // "Pause" goal workaround: set difficulty to 'paused'
+  const handlePause = async (id) => {
+    try {
+      setLoading(true);
+      setError('');
+      await apiService.goals.update(id, { difficulty: 'paused' });
+      await loadGoals();
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to pause goal');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
       setLoading(true);
@@ -82,6 +112,17 @@ const GoalsPage = () => {
       setError(e.response?.data?.message || 'Failed to delete goal');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleChallengeComplete = async (challengeId) => {
+    try {
+      setError('');
+      await apiService.challenges.complete(challengeId);
+      // Reload goals to update progress
+      await loadGoals();
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to complete challenge');
     }
   };
 
@@ -132,14 +173,6 @@ const GoalsPage = () => {
           Create New Goal
         </button>
       </div>
-
-      {showForm && (
-        <GoalForm
-          onSubmit={handleGoalSubmit}
-          onClose={handleFormClose}
-          initialGoal={editingGoal}
-        />
-      )}
 
       {/* TODO: Add filters for category, status, difficulty */}
 
@@ -202,6 +235,9 @@ const GoalsPage = () => {
                 goal={goal}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onMarkComplete={handleMarkComplete}
+                onPause={handlePause}
+                onChallengeComplete={handleChallengeComplete}
               />
             ))}
           </div>
@@ -220,6 +256,14 @@ const GoalsPage = () => {
           </div>
         )}
       </div>
+
+      {showForm && (
+        <GoalForm
+          onSubmit={handleGoalSubmit}
+          onClose={handleFormClose}
+          initialGoal={editingGoal}
+        />
+      )}
     </div>
   );
 };

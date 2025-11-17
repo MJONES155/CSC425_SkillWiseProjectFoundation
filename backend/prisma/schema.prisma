@@ -157,28 +157,28 @@ model peer_reviews {
 
 model progress_events {
   id                    Int          @id @default(autoincrement())
-  user_id               Int
-  event_type            String       @db.VarChar(50)
-  event_data            Json?
-  points_earned         Int?         @default(0)
-  related_goal_id       Int?
-  related_challenge_id  Int?
-  related_submission_id Int?
-  session_id            String?      @db.VarChar(255)
-  timestamp_occurred    DateTime?    @default(now()) @db.Timestamptz(6)
-  created_at            DateTime?    @default(now()) @db.Timestamptz(6)
-  challenges            challenges?  @relation(fields: [related_challenge_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  goals                 goals?       @relation(fields: [related_goal_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  submissions           submissions? @relation(fields: [related_submission_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users                 User        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userId               Int          @map("user_id")
+  eventType            String       @map("event_type")@db.VarChar(50)
+  eventData            Json?        @map("event_data")
+  pointsEarned         Int?         @map("points_earned") @default(0)
+  relatedGoalId       Int?         @map("related_goal_id") 
+  relatedChallengeId  Int?         @map("related_challenge_id")
+  relatedSubmissionId Int?         @map("related_submission_id")
+  sessionId            String?      @map("session_id") @db.VarChar(255)
+  timestampOccurred    DateTime?    @map("timestamp_occurred") @default(now()) @db.Timestamptz(6)
+  createdAt            DateTime?    @map("created_at") @default(now()) @db.Timestamptz(6)
+  challenges            challenges?  @relation(fields: [relatedChallengeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  goals                 goals?       @relation(fields: [relatedGoalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  submissions           submissions? @relation(fields: [relatedSubmissionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                 User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([related_challenge_id], map: "idx_progress_events_challenge_id")
-  @@index([event_data], map: "idx_progress_events_data", type: Gin)
-  @@index([related_goal_id], map: "idx_progress_events_goal_id")
-  @@index([session_id], map: "idx_progress_events_session")
-  @@index([timestamp_occurred], map: "idx_progress_events_timestamp")
-  @@index([event_type], map: "idx_progress_events_type")
-  @@index([user_id], map: "idx_progress_events_user_id")
+  @@index([relatedChallengeId], map: "idx_progress_events_challenge_id")
+  @@index([eventData], map: "idx_progress_events_data", type: Gin)
+  @@index([relatedGoalId], map: "idx_progress_events_goal_id")
+  @@index([sessionId], map: "idx_progress_events_session")
+  @@index([timestampOccurred], map: "idx_progress_events_timestamp")
+  @@index([eventType], map: "idx_progress_events_type")
+  @@index([userId], map: "idx_progress_events_user_id")
 }
 
 model refresh_tokens {
@@ -246,28 +246,28 @@ model user_achievements {
 
 model user_statistics {
   id                          Int       @id @default(autoincrement())
-  user_id                     Int       @unique
-  total_points                Int?      @default(0)
-  total_challenges_completed  Int?      @default(0)
-  total_goals_completed       Int?      @default(0)
-  total_peer_reviews_given    Int?      @default(0)
-  total_peer_reviews_received Int?      @default(0)
-  average_score               Decimal?  @default(0) @db.Decimal(5, 2)
-  current_streak_days         Int?      @default(0)
-  longest_streak_days         Int?      @default(0)
-  total_time_spent_minutes    Int?      @default(0)
+  userId                     Int       @map("user_id") @unique
+  totalPoints                Int?      @map("total_points") @default(0)
+  totalChallengesCompleted  Int?      @map("total_challenges_completed") @default(0)
+  totalGoalsCompleted       Int?      @map("total_goals_completed") @default(0)
+  totalPeerReviewsGiven    Int?      @map("total_peer_reviews_given") @default(0)
+  totalPeerReviewsReceived Int?      @map("total_peer_reviews_received") @default(0)
+  averageScore               Decimal?  @map("average_score") @default(0) @db.Decimal(5, 2)
+  currentStreakDays         Int?      @map("current_streak_days") @default(0)
+  longestStreakDays         Int?      @map("longest_streak_days") @default(0)
+  totalTimeSpentMinutes    Int?      @map("total_time_spent_minutes") @default(0)
   level                       Int?      @default(1)
-  experience_points           Int?      @default(0)
-  rank_position               Int?
-  last_activity_date          DateTime? @db.Date
-  created_at                  DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at                  DateTime? @default(now()) @db.Timestamptz(6)
-  users                       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  experiencePoints           Int?      @map("experience_points") @default(0)
+  rankPosition               Int?      @map("rank_position")
+  lastActivityDate          DateTime? @map("last_activity_date ") @db.Date
+  createdAt                  DateTime? @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt                  DateTime? @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users                       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([last_activity_date], map: "idx_user_stats_activity")
+  @@index([lastActivityDate], map: "idx_user_stats_activity")
   @@index([level(sort: Desc)], map: "idx_user_stats_level")
-  @@index([rank_position], map: "idx_user_stats_rank")
-  @@index([total_points(sort: Desc)], map: "idx_user_stats_total_points")
+  @@index([rankPosition], map: "idx_user_stats_rank")
+  @@index([totalPoints(sort: Desc)], map: "idx_user_stats_total_points")
 }
 
 model User {
