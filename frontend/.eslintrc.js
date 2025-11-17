@@ -10,7 +10,8 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    'no-unused-vars': 'warn',
+    // Disable unused-vars warnings for scaffolded components and placeholder code
+    'no-unused-vars': 'off',
     'no-console': 'off', // Allow console for logging
     indent: ['error', 2],
     quotes: ['error', 'single'],

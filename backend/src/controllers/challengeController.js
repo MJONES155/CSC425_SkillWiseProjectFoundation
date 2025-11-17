@@ -121,13 +121,11 @@ const challengeController = {
         challengeId,
         userId
       );
-      res
-        .status(200)
-        .json({
-          success: true,
-          data: updated,
-          message: 'Challenge marked as completed',
-        });
+      res.status(200).json({
+        success: true,
+        data: updated,
+        message: 'Challenge marked as completed',
+      });
     } catch (error) {
       next(error);
     }
