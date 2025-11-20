@@ -40,6 +40,9 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
+  console.error('💥 Uncaught Exception:');
+  console.error(err);
+  console.error('Stack:', err.stack);
   logger.error('💥 Uncaught Exception:', err);
   process.exit(1);
 });

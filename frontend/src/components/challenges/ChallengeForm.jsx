@@ -155,6 +155,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
               type="text"
               id="title"
               name="title"
+              data-test="challenge-title"
               value={formData.title}
               onChange={handleChange}
               required
@@ -167,6 +168,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
             <textarea
               id="description"
               name="description"
+              data-test="challenge-description"
               value={formData.description}
               onChange={handleChange}
               required
@@ -179,6 +181,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
             <textarea
               id="instructions"
               name="instructions"
+              data-test="challenge-instructions"
               value={formData.instructions}
               onChange={handleChange}
               required
@@ -192,6 +195,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
               <select
                 id="category"
                 name="category"
+                data-test="challenge-category"
                 value={formData.category}
                 onChange={handleChange}
               >

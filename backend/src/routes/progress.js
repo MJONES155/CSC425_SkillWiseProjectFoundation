@@ -1,19 +1,29 @@
-// TODO: Implement progress routes
+// Progress routes
 const express = require('express');
 const router = express.Router();
 const progressController = require('../controllers/progressController');
 const auth = require('../middleware/auth');
 
-// TODO: Add GET / route for user progress
+// Legacy overview
 router.get('/', auth, progressController.getProgress);
 
-// TODO: Add POST /event route for tracking progress events
-router.post('/event', auth, progressController.updateProgress);
+// Overview matching frontend apiService
+router.get('/overview', auth, progressController.getOverview);
 
-// TODO: Add GET /analytics route for progress analytics
+// Recent activity timeline
+router.get('/activity', auth, progressController.getActivity);
+
+// Analytics & stats
 router.get('/analytics', auth, progressController.getAnalytics);
+router.get('/stats', auth, progressController.getAnalytics);
 
-// TODO: Add GET /milestones route for milestone tracking
+// Skills/category breakdown
+router.get('/skills', auth, progressController.getSkills);
+
+// Milestones
 router.get('/milestones', auth, progressController.getMilestones);
+
+// Track an event
+router.post('/event', auth, progressController.updateProgress);
 
 module.exports = router;

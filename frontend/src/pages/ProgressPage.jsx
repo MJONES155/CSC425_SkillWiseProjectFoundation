@@ -1,224 +1,299 @@
-// TODO: Implement progress tracking and analytics page
+// Progress tracking and analytics page
 import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  Typography,
+  LinearProgress,
+  Select,
+  MenuItem,
+  Divider,
+  Paper,
+} from '@mui/material';
+
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { apiService } from '../services/api';
+
+const tfToParam = (tf) =>
+  tf === 'month' ? '30d' : tf === 'year' ? '90d' : '7d';
 
 const ProgressPage = () => {
-  const [progressData, setProgressData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('week');
+  const [overview, setOverview] = useState(null);
+  const [activity, setActivity] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [skills, setSkills] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Mock data - TODO: Replace with API call
-  useEffect(() => {
-    const mockProgressData = {
-      overall: {
-        totalPoints: 450,
-        level: 5,
-        experiencePoints: 1250,
-        nextLevelXP: 1500,
-        completedGoals: 8,
-        completedChallenges: 15,
-        currentStreak: 7,
-        longestStreak: 12,
-      },
-      recentActivity: [
-        {
-          id: 1,
-          type: 'challenge_completed',
-          title: 'Build a React Component',
-          points: 50,
-          timestamp: '2025-10-02T10:30:00Z',
-        },
-        {
-          id: 2,
-          type: 'goal_progress',
-          title: 'Master Frontend Development',
-          progress: 75,
-          timestamp: '2025-10-02T09:15:00Z',
-        },
-        {
-          id: 3,
-          type: 'achievement_earned',
-          title: 'First Week Streak',
-          points: 25,
-          timestamp: '2025-10-01T16:45:00Z',
-        },
-      ],
-      weeklyProgress: [
-        { day: 'Mon', points: 30, timeSpent: 45 },
-        { day: 'Tue', points: 50, timeSpent: 60 },
-        { day: 'Wed', points: 0, timeSpent: 0 },
-        { day: 'Thu', points: 75, timeSpent: 90 },
-        { day: 'Fri', points: 40, timeSpent: 55 },
-        { day: 'Sat', points: 60, timeSpent: 75 },
-        { day: 'Sun', points: 35, timeSpent: 40 },
-      ],
-      skillBreakdown: [
-        { skill: 'JavaScript', level: 4, progress: 80 },
-        { skill: 'React', level: 3, progress: 65 },
-        { skill: 'CSS', level: 5, progress: 90 },
-        { skill: 'Node.js', level: 2, progress: 40 },
-        { skill: 'Database', level: 3, progress: 55 },
-      ],
-    };
+  const loadAll = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    setTimeout(() => {
-      setProgressData(mockProgressData);
+      const [ovRes, actRes, anRes, skRes] = await Promise.all([
+        apiService.progress.getOverview(),
+        apiService.progress.getActivity({
+          timeframe: tfToParam(timeframe),
+          limit: 10,
+        }),
+        apiService.progress
+          .getStats({ params: { timeframe: tfToParam(timeframe) } })
+          .catch(() => ({ data: { data: null } })),
+        apiService.progress.getSkills().catch(() => ({ data: { data: [] } })),
+      ]);
+
+      const ov = ovRes.data?.data ?? ovRes.data;
+      const act = actRes.data?.data ?? actRes.data ?? [];
+      const an = anRes.data?.data ?? anRes.data ?? null;
+      const sk = skRes.data?.data ?? skRes.data ?? [];
+
+      setOverview(ov);
+      setActivity(act);
+      setAnalytics(an);
+      setSkills(sk);
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Failed to load progress');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    loadAll();
   }, [timeframe]);
 
-  if (loading) {
-    return <LoadingSpinner message="Loading your progress..." />;
-  }
+  if (loading) return <LoadingSpinner message="Loading your progress..." />;
+  if (error) return <Typography color="error">{error}</Typography>;
+
+  const daily = analytics?.daily || [];
+  const weeklyBars = daily
+    .map((d) => ({
+      label: d.date.slice(5),
+      points: d.points,
+      events: d.events,
+    }))
+    .slice(-7);
+
+  const totalGoals = overview?.goals?.length ?? 0;
+  const completedGoals = overview?.totals?.completedGoals ?? 0;
+  const overallProgressPercentage =
+    totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
 
   return (
-    <div className="progress-page">
-      <div className="page-header">
-        <h1>Your Learning Progress</h1>
-        <p>Track your journey and celebrate your achievements</p>
-      </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Page Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" fontWeight={700}>
+          Your Learning Progress
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          Track your journey and celebrate your achievements
+        </Typography>
+      </Box>
 
-      <div className="progress-overview">
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">🎯</div>
-            <div className="stat-content">
-              <h3>{progressData.overall.totalPoints}</h3>
-              <p>Total Points</p>
-            </div>
-          </div>
+      {/* OVERALL PROGRESS CARD */}
+      <Card sx={{ mb: 4, p: 3 }}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          <Typography variant="h5" fontWeight={600}>
+            Overall Goal Progress
+          </Typography>
+          <Typography variant="h3" color="success.main" fontWeight={700}>
+            {overallProgressPercentage}%
+          </Typography>
+        </Box>
 
-          <div className="stat-card">
-            <div className="stat-icon">⭐</div>
-            <div className="stat-content">
-              <h3>Level {progressData.overall.level}</h3>
-              <p>Current Level</p>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{
-                    width: `${
-                      (progressData.overall.experiencePoints /
-                        progressData.overall.nextLevelXP) *
-                      100
-                    }%`,
-                  }}
-                ></div>
-              </div>
-              <small>
-                {progressData.overall.experiencePoints}/
-                {progressData.overall.nextLevelXP} XP
-              </small>
-            </div>
-          </div>
+        <LinearProgress
+          variant="determinate"
+          value={overallProgressPercentage}
+          sx={{ height: 12, borderRadius: 2, mb: 2 }}
+        />
 
-          <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-content">
-              <h3>{progressData.overall.completedGoals}</h3>
-              <p>Goals Completed</p>
-            </div>
-          </div>
+        <Typography align="center" color="text.secondary">
+          {completedGoals} of {totalGoals} goals completed
+        </Typography>
+      </Card>
 
-          <div className="stat-card">
-            <div className="stat-icon">🚀</div>
-            <div className="stat-content">
-              <h3>{progressData.overall.completedChallenges}</h3>
-              <p>Challenges Done</p>
-            </div>
-          </div>
+      {/* STATS GRID */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {[
+          {
+            label: 'Total Points',
+            value: overview?.totals?.totalPoints ?? 0,
+            icon: '🎯',
+          },
+          {
+            label: 'Goals Completed',
+            value: overview?.totals?.completedGoals ?? 0,
+            icon: '✅',
+          },
+          {
+            label: 'Challenges Done',
+            value: overview?.totals?.completedChallenges ?? 0,
+            icon: '🚀',
+          },
+          {
+            label: 'Day Streak',
+            value: overview?.totals?.currentStreakDays ?? 0,
+            sub: `Longest: ${overview?.totals?.longestStreakDays ?? 0}`,
+            icon: '🔥',
+          },
+        ].map((item, i) => (
+          <Grid item xs={12} sm={6} md={3} key={i}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography fontSize="2rem">{item.icon}</Typography>
+                <Typography variant="h4">{item.value}</Typography>
+                <Typography color="text.secondary">{item.label}</Typography>
+                {item.sub && (
+                  <Typography variant="caption" color="text.secondary">
+                    {item.sub}
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
 
-          <div className="stat-card">
-            <div className="stat-icon">🔥</div>
-            <div className="stat-content">
-              <h3>{progressData.overall.currentStreak}</h3>
-              <p>Day Streak</p>
-              <small>Longest: {progressData.overall.longestStreak} days</small>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* MAIN SECTIONS: ACTIVITY + RECENT */}
+      <Grid container spacing={4}>
+        {/* ACTIVITY CHART SECTION */}
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 3 }}>
+            <Box display="flex" justifyContent="space-between" mb={2}>
+              <Typography variant="h5">Activity</Typography>
 
-      <div className="progress-sections">
-        <div className="section-row">
-          <div className="progress-chart-section">
-            <div className="section-header">
-              <h2>Weekly Activity</h2>
-              <select
+              <Select
                 value={timeframe}
                 onChange={(e) => setTimeframe(e.target.value)}
+                size="small"
               >
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="year">This Year</option>
-              </select>
-            </div>
+                <MenuItem value="week">This Week</MenuItem>
+                <MenuItem value="month">This Month</MenuItem>
+                <MenuItem value="year">This Quarter</MenuItem>
+              </Select>
+            </Box>
 
-            <div className="weekly-chart">
-              {progressData.weeklyProgress.map((day, index) => (
-                <div key={index} className="day-column">
-                  <div className="day-label">{day.day}</div>
-                  <div
-                    className="day-bar"
-                    style={{ height: `${Math.max(day.points / 2, 5)}px` }}
-                    title={`${day.points} points, ${day.timeSpent} minutes`}
-                  ></div>
-                  <div className="day-points">{day.points}</div>
-                </div>
+            <Box
+              display="flex"
+              gap={2}
+              alignItems="flex-end"
+              sx={{ height: 200 }}
+            >
+              {weeklyBars.map((d, idx) => (
+                <Box
+                  key={idx}
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  flex={1}
+                >
+                  <Typography variant="caption">{d.label}</Typography>
+
+                  <Box
+                    sx={{
+                      width: '100%',
+                      background: '#4CAF50',
+                      height: Math.max(d.points / 2, 5),
+                      borderRadius: 1,
+                      transition: 'height 0.3s',
+                    }}
+                  />
+
+                  <Typography variant="caption">{d.points}</Typography>
+                </Box>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Card>
+        </Grid>
 
-          <div className="recent-activity-section">
-            <h2>Recent Activity</h2>
-            <div className="activity-list">
-              {progressData.recentActivity.map((activity) => (
-                <div key={activity.id} className="activity-item">
-                  <div className="activity-icon">
-                    {activity.type === 'challenge_completed' && '🚀'}
-                    {activity.type === 'goal_progress' && '🎯'}
-                    {activity.type === 'achievement_earned' && '🏆'}
-                  </div>
-                  <div className="activity-content">
-                    <h4>{activity.title}</h4>
-                    <p>
-                      {activity.points && `+${activity.points} points`}
-                      {activity.progress && `${activity.progress}% complete`}
-                    </p>
-                    <small>
-                      {new Date(activity.timestamp).toLocaleDateString()}
-                    </small>
-                  </div>
-                </div>
+        {/* RECENT ACTIVITY */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h5" mb={2}>
+              Recent Activity
+            </Typography>
+
+            <Box sx={{ maxHeight: 340, overflow: 'auto' }}>
+              {activity.length === 0 && (
+                <Typography color="text.secondary">
+                  No recent activity yet.
+                </Typography>
+              )}
+
+              {activity.map((ev) => (
+                <Paper key={ev.id} sx={{ p: 2, mb: 2 }}>
+                  <Typography fontSize="1.5rem">
+                    {ev.type === 'challenge_completed'
+                      ? '🚀'
+                      : ev.type?.includes('goal')
+                      ? '🎯'
+                      : '🧭'}
+                  </Typography>
+
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {ev.type.replace(/_/g, ' ')}{' '}
+                    {ev.challengeTitle || ev.goalTitle ? '— ' : ''}
+                    {ev.challengeTitle || ev.goalTitle}
+                  </Typography>
+
+                  {ev.points > 0 && (
+                    <Typography variant="body2">+{ev.points} points</Typography>
+                  )}
+
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(ev.timestamp).toLocaleString()}
+                  </Typography>
+                </Paper>
               ))}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
 
-        <div className="skills-section">
-          <h2>Skill Breakdown</h2>
-          <div className="skills-grid">
-            {progressData.skillBreakdown.map((skill, index) => (
-              <div key={index} className="skill-item">
-                <div className="skill-header">
-                  <h4>{skill.skill}</h4>
-                  <span className="skill-level">Level {skill.level}</span>
-                </div>
-                <div className="skill-progress">
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${skill.progress}%` }}
-                    ></div>
-                  </div>
-                  <span className="progress-text">{skill.progress}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+      {/* SKILLS GRID */}
+      <Card sx={{ p: 3, mt: 4 }}>
+        <Typography variant="h5" mb={3}>
+          Skill Breakdown
+        </Typography>
+
+        <Grid container spacing={3}>
+          {skills.length === 0 && (
+            <Typography color="text.secondary">
+              Complete challenges to build your skills.
+            </Typography>
+          )}
+
+          {skills.map((s, idx) => (
+            <Grid item xs={12} md={4} key={idx}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {s.category}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Completed: {s.completed}
+                </Typography>
+
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min(100, s.completed * 10)}
+                  sx={{ my: 2, height: 10, borderRadius: 1 }}
+                />
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Card>
+    </Container>
   );
 };
 
