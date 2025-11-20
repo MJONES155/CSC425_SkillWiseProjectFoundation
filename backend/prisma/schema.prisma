@@ -1,0 +1,306 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model achievements {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  description       String
+  category          String              @db.VarChar(100)
+  badge_icon        String?             @db.VarChar(255)
+  points_reward     Int?                @default(0)
+  criteria          Json
+  is_active         Boolean?            @default(true)
+  rarity            String?             @default("common") @db.VarChar(20)
+  created_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  user_achievements user_achievements[]
+
+  @@index([category], map: "idx_achievements_category")
+  @@index([is_active], map: "idx_achievements_is_active")
+  @@index([rarity], map: "idx_achievements_rarity")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ai_feedback {
+  id                 Int         @id @default(autoincrement())
+  submission_id      Int
+  feedback_text      String
+  feedback_type      String?     @default("general") @db.VarChar(50)
+  confidence_score   Decimal?    @db.Decimal(3, 2)
+  suggestions        String[]
+  strengths          String[]
+  improvements       String[]
+  ai_model           String?     @db.VarChar(50)
+  processing_time_ms Int?
+  created_at         DateTime?   @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?   @default(now()) @db.Timestamptz(6)
+  submissions        submissions @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_ai_feedback_created_at")
+  @@index([submission_id], map: "idx_ai_feedback_submission_id")
+  @@index([feedback_type], map: "idx_ai_feedback_type")
+}
+
+model challenges {
+  id                     Int               @id @default(autoincrement())
+  title                  String            @db.VarChar(255)
+  description            String
+  instructions           String
+  category               String            @db.VarChar(100)
+  difficulty_level       String?           @default("medium") @db.VarChar(20)
+  estimated_time_minutes Int?
+  points_reward          Int?              @default(10)
+  max_attempts           Int?              @default(3)
+  requires_peer_review   Boolean?          @default(false)
+  is_active              Boolean?          @default(true)
+  created_by             Int?
+  tags                   String[]
+  prerequisites          String[]
+  learning_objectives    String[]
+  created_at             DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?         @default(now()) @db.Timestamptz(6)
+  users                  User?            @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  progress_events        progress_events[]
+  submissions            submissions[]
+
+  @@index([category], map: "idx_challenges_category")
+  @@index([created_by], map: "idx_challenges_created_by")
+  @@index([difficulty_level], map: "idx_challenges_difficulty")
+  @@index([is_active], map: "idx_challenges_is_active")
+  @@index([tags], map: "idx_challenges_tags", type: Gin)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model goals {
+  id                     Int               @id @default(autoincrement())
+  user_id                Int
+  title                  String            @db.VarChar(255)
+  description            String?
+  category               String?           @db.VarChar(100)
+  difficulty_level       String?           @default("medium") @db.VarChar(20)
+  target_completion_date DateTime?         @db.Date
+  is_completed           Boolean?          @default(false)
+  completion_date        DateTime?         @db.Timestamptz(6)
+  progress_percentage    Int?              @default(0)
+  points_reward          Int?              @default(0)
+  is_public              Boolean?          @default(false)
+  created_at             DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?         @default(now()) @db.Timestamptz(6)
+  users                  User             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  progress_events        progress_events[]
+
+  @@index([category], map: "idx_goals_category")
+  @@index([completion_date], map: "idx_goals_completion_date")
+  @@index([difficulty_level], map: "idx_goals_difficulty")
+  @@index([is_completed], map: "idx_goals_is_completed")
+  @@index([user_id], map: "idx_goals_user_id")
+}
+
+model leaderboard {
+  id                   Int       @id @default(autoincrement())
+  user_id              Int
+  timeframe            String    @db.VarChar(20)
+  rank_position        Int
+  points               Int       @default(0)
+  challenges_completed Int?      @default(0)
+  goals_completed      Int?      @default(0)
+  period_start         DateTime  @db.Date
+  period_end           DateTime  @db.Date
+  created_at           DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime? @default(now()) @db.Timestamptz(6)
+  users                User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, timeframe, period_start], map: "idx_leaderboard_unique_period")
+  @@index([period_start, period_end], map: "idx_leaderboard_period")
+  @@index([timeframe, points(sort: Desc)], map: "idx_leaderboard_points")
+  @@index([timeframe, rank_position], map: "idx_leaderboard_rank")
+  @@index([user_id, timeframe], map: "idx_leaderboard_user_timeframe")
+}
+
+model migrations {
+  id          Int       @id @default(autoincrement())
+  filename    String    @db.VarChar(255)
+  executed_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model peer_reviews {
+  id                                    Int         @id @default(autoincrement())
+  reviewer_id                           Int
+  reviewee_id                           Int
+  submission_id                         Int
+  review_text                           String
+  rating                                Int?
+  criteria_scores                       Json?
+  time_spent_minutes                    Int?
+  is_anonymous                          Boolean?    @default(true)
+  is_completed                          Boolean?    @default(false)
+  completed_at                          DateTime?   @db.Timestamptz(6)
+  created_at                            DateTime?   @default(now()) @db.Timestamptz(6)
+  updated_at                            DateTime?   @default(now()) @db.Timestamptz(6)
+  users_peer_reviews_reviewee_idTousers User       @relation("peer_reviews_reviewee_idTousers", fields: [reviewee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_peer_reviews_reviewer_idTousers User       @relation("peer_reviews_reviewer_idTousers", fields: [reviewer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  submissions                           submissions @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([reviewer_id, submission_id], map: "idx_peer_reviews_unique")
+  @@index([is_completed], map: "idx_peer_reviews_is_completed")
+  @@index([reviewee_id], map: "idx_peer_reviews_reviewee_id")
+  @@index([reviewer_id], map: "idx_peer_reviews_reviewer_id")
+  @@index([submission_id], map: "idx_peer_reviews_submission_id")
+}
+
+model progress_events {
+  id                    Int          @id @default(autoincrement())
+  user_id               Int
+  event_type            String       @db.VarChar(50)
+  event_data            Json?
+  points_earned         Int?         @default(0)
+  related_goal_id       Int?
+  related_challenge_id  Int?
+  related_submission_id Int?
+  session_id            String?      @db.VarChar(255)
+  timestamp_occurred    DateTime?    @default(now()) @db.Timestamptz(6)
+  created_at            DateTime?    @default(now()) @db.Timestamptz(6)
+  challenges            challenges?  @relation(fields: [related_challenge_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  goals                 goals?       @relation(fields: [related_goal_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  submissions           submissions? @relation(fields: [related_submission_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                 User        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([related_challenge_id], map: "idx_progress_events_challenge_id")
+  @@index([event_data], map: "idx_progress_events_data", type: Gin)
+  @@index([related_goal_id], map: "idx_progress_events_goal_id")
+  @@index([session_id], map: "idx_progress_events_session")
+  @@index([timestamp_occurred], map: "idx_progress_events_timestamp")
+  @@index([event_type], map: "idx_progress_events_type")
+  @@index([user_id], map: "idx_progress_events_user_id")
+}
+
+model refresh_tokens {
+  id         Int       @id @default(autoincrement())
+  token      String    @unique @db.VarChar(255)
+  user_id    Int
+  expires_at DateTime  @db.Timestamptz(6)
+  is_revoked Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "idx_refresh_tokens_expires_at")
+  @@index([token], map: "idx_refresh_tokens_token")
+  @@index([user_id], map: "idx_refresh_tokens_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model submissions {
+  id                                 Int               @id @default(autoincrement())
+  user_id                            Int
+  challenge_id                       Int
+  submission_text                    String
+  submission_files                   Json?
+  status                             String?           @default("submitted") @db.VarChar(20)
+  score                              Int?
+  attempt_number                     Int?              @default(1)
+  time_spent_minutes                 Int?
+  submitted_at                       DateTime?         @default(now()) @db.Timestamptz(6)
+  graded_at                          DateTime?         @db.Timestamptz(6)
+  graded_by                          Int?
+  feedback                           String?
+  is_flagged                         Boolean?          @default(false)
+  created_at                         DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at                         DateTime?         @default(now()) @db.Timestamptz(6)
+  ai_feedback                        ai_feedback[]
+  peer_reviews                       peer_reviews[]
+  progress_events                    progress_events[]
+  challenges                         challenges        @relation(fields: [challenge_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_submissions_graded_byTousers User?            @relation("submissions_graded_byTousers", fields: [graded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_submissions_user_idTousers   User             @relation("submissions_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, challenge_id, attempt_number], map: "idx_submissions_user_challenge_attempt")
+  @@index([challenge_id], map: "idx_submissions_challenge_id")
+  @@index([status], map: "idx_submissions_status")
+  @@index([submitted_at], map: "idx_submissions_submitted_at")
+  @@index([user_id], map: "idx_submissions_user_id")
+}
+
+model user_achievements {
+  id             Int          @id @default(autoincrement())
+  user_id        Int
+  achievement_id Int
+  earned_at      DateTime?    @default(now()) @db.Timestamptz(6)
+  progress_data  Json?
+  is_displayed   Boolean?     @default(true)
+  achievements   achievements @relation(fields: [achievement_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users          User        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, achievement_id], map: "idx_user_achievements_unique")
+  @@index([achievement_id], map: "idx_user_achievements_achievement_id")
+  @@index([earned_at], map: "idx_user_achievements_earned_at")
+  @@index([user_id], map: "idx_user_achievements_user_id")
+}
+
+model user_statistics {
+  id                          Int       @id @default(autoincrement())
+  user_id                     Int       @unique
+  total_points                Int?      @default(0)
+  total_challenges_completed  Int?      @default(0)
+  total_goals_completed       Int?      @default(0)
+  total_peer_reviews_given    Int?      @default(0)
+  total_peer_reviews_received Int?      @default(0)
+  average_score               Decimal?  @default(0) @db.Decimal(5, 2)
+  current_streak_days         Int?      @default(0)
+  longest_streak_days         Int?      @default(0)
+  total_time_spent_minutes    Int?      @default(0)
+  level                       Int?      @default(1)
+  experience_points           Int?      @default(0)
+  rank_position               Int?
+  last_activity_date          DateTime? @db.Date
+  created_at                  DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime? @default(now()) @db.Timestamptz(6)
+  users                       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([last_activity_date], map: "idx_user_stats_activity")
+  @@index([level(sort: Desc)], map: "idx_user_stats_level")
+  @@index([rank_position], map: "idx_user_stats_rank")
+  @@index([total_points(sort: Desc)], map: "idx_user_stats_total_points")
+}
+
+model User {
+  id                                           Int                 @id @default(autoincrement())
+  email                                       String              @unique @db.VarChar(255)
+  password                                    String              @db.VarChar(255)
+  firstName                                   String              @db.VarChar(100)
+  lastName                                    String              @db.VarChar(100)
+  profileImage                                String?             @db.VarChar(255)
+  bio                                          String?
+  isActive                                    Boolean?            @default(true)
+  isVerified                                  Boolean?            @default(false)
+  role                                         String?             @default("student") @db.VarChar(20)
+  createdAt                                   DateTime?           @default(now()) @db.Timestamptz(6)
+  updatedAt                                   DateTime?           @default(now()) @db.Timestamptz(6)
+  lastLogin                                   DateTime?           @db.Timestamptz(6)
+  challenges                                   challenges[]
+  goals                                        goals[]
+  leaderboard                                  leaderboard[]
+  peer_reviews_peer_reviews_reviewee_idTousers peer_reviews[]      @relation("peer_reviews_reviewee_idTousers")
+  peer_reviews_peer_reviews_reviewer_idTousers peer_reviews[]      @relation("peer_reviews_reviewer_idTousers")
+  progress_events                              progress_events[]
+  refresh_tokens                               refresh_tokens[]
+  submissions_submissions_graded_byTousers     submissions[]       @relation("submissions_graded_byTousers")
+  submissions_submissions_user_idTousers       submissions[]       @relation("submissions_user_idTousers")
+  user_achievements                            user_achievements[]
+  user_statistics                              user_statistics?
+
+  @@index([email], map: "idx_users_email")
+  @@index([isActive], map: "idx_users_is_active")
+  @@index([role], map: "idx_users_role")
+
+  
+  @@map("users") 
+}
+
