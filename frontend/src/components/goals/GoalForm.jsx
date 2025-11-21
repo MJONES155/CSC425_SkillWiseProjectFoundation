@@ -24,8 +24,8 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
         // Convert ISO date to YYYY-MM-DD for input[type=date]
         targetCompletionDate: initialGoal.targetCompletionDate
           ? new Date(initialGoal.targetCompletionDate)
-              .toISOString()
-              .slice(0, 10)
+            .toISOString()
+            .slice(0, 10)
           : '',
       });
     }
@@ -43,7 +43,7 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
       <div className="goal-form-modal">
         <div className="modal-header">
           <h2>{initialGoal ? 'Edit Goal' : 'Create New Goal'}</h2>
-          <button className="close-btn" onClick={onClose} type="button">
+          <button className="close-btn" onClick={onClose} type="button" data-test="close-goal-form">
             ×
           </button>
         </div>
@@ -54,6 +54,7 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
             <input
               type="text"
               id="title"
+              data-test="goal-title"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
@@ -67,6 +68,7 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
             <label htmlFor="description">Description</label>
             <textarea
               id="description"
+              data-test="goal-description"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
@@ -80,6 +82,7 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
             <select
               id="category"
               value={formData.category}
+              data-test="goal-category"
               onChange={(e) =>
                 setFormData({ ...formData, category: e.target.value })
               }
@@ -96,6 +99,7 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
             <select
               id="difficulty"
               value={formData.difficulty}
+              data-test="goal-difficulty"
               onChange={(e) =>
                 setFormData({ ...formData, difficulty: e.target.value })
               }
@@ -111,6 +115,7 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
             <input
               type="date"
               id="targetCompletionDate"
+              data-test="goal-target-date"
               value={formData.targetCompletionDate}
               onChange={(e) =>
                 setFormData({
@@ -122,10 +127,10 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>
+            <button type="button" className="btn-secondary" onClick={onClose} data-test="cancel-goal-form">
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary" data-test="submit-goal-form">
               {initialGoal ? 'Update Goal' : 'Create Goal'}
             </button>
           </div>

@@ -4,7 +4,7 @@
 const { exec } = require('child_process');
 const path = require('path');
 
-async function deploy() {
+async function deploy () {
   try {
     console.log('Starting deployment process...');
 
@@ -27,7 +27,7 @@ async function deploy() {
   }
 }
 
-function runCommand(command) {
+function runCommand (command) {
   return new Promise((resolve, reject) => {
     exec(command, (error, stdout, stderr) => {
       if (error) {

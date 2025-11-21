@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
 import './ChallengeForm.css';
 
-const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
+const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoalId = null }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -39,6 +39,16 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
     }
   }, [initialChallenge]);
 
+  // If opening in create mode with a provided initialGoalId, preselect it
+  useEffect(() => {
+    if (!initialChallenge && initialGoalId) {
+      setFormData((prev) => ({
+        ...prev,
+        goalId: parseInt(initialGoalId, 10),
+      }));
+    }
+  }, [initialGoalId, initialChallenge]);
+
   // Load user's goals and challenges for selection
   useEffect(() => {
     const load = async () => {
@@ -68,13 +78,13 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
       let newPrereqs = formData.prerequisites;
       if (newGoalId && Array.isArray(newPrereqs) && newPrereqs.length) {
         const allowedIds = new Set(
-          allChallenges.filter((c) => c.goalId === newGoalId).map((c) => c.id)
+          allChallenges.filter((c) => c.goalId === newGoalId).map((c) => c.id),
         );
         const removed = newPrereqs.filter((id) => !allowedIds.has(id));
         newPrereqs = newPrereqs.filter((id) => allowedIds.has(id));
         if (removed.length) {
           setPrereqWarning(
-            `Removed ${removed.length} prerequisite(s) not linked to the selected goal.`
+            `Removed ${removed.length} prerequisite(s) not linked to the selected goal.`,
           );
           setTimeout(() => setPrereqWarning(''), 4000);
         }
@@ -128,7 +138,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
       });
       if (mismatched.length) {
         setPrereqWarning(
-          'Some prerequisites belong to a different goal. Please fix and try again.'
+          'Some prerequisites belong to a different goal. Please fix and try again.',
         );
         return;
       }
@@ -213,12 +223,13 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
               <select
                 id="difficulty"
                 name="difficulty"
+                data-test="challenge-difficulty"
                 value={formData.difficulty}
                 onChange={handleChange}
               >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
               </select>
             </div>
           </div>
@@ -229,6 +240,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
               <select
                 id="goalId"
                 name="goalId"
+                data-test="challenge-goal"
                 value={formData.goalId}
                 onChange={handleChange}
               >
@@ -248,6 +260,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
                 type="number"
                 id="estimatedTimeMinutes"
                 name="estimatedTimeMinutes"
+                data-test="challenge-estimated-time"
                 value={formData.estimatedTimeMinutes || ''}
                 onChange={handleChange}
                 min={1}
@@ -260,6 +273,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
                 type="number"
                 id="pointsReward"
                 name="pointsReward"
+                data-test="challenge-points-reward"
                 value={formData.pointsReward || ''}
                 onChange={handleChange}
                 min={1}
@@ -272,6 +286,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
                 type="number"
                 id="maxAttempts"
                 name="maxAttempts"
+                data-test="challenge-max-attempts"
                 value={formData.maxAttempts || ''}
                 onChange={handleChange}
                 min={1}
@@ -285,7 +300,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
               <div className="prerequisite-tags">
                 {formData.prerequisites.map((prereqId) => {
                   const challenge = allChallenges.find(
-                    (c) => c.id === prereqId
+                    (c) => c.id === prereqId,
                   );
                   return (
                     <div key={prereqId} className="prerequisite-tag">
@@ -295,6 +310,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
                       <button
                         type="button"
                         className="remove-tag-btn"
+                        data-test={`remove-prereq-${prereqId}`}
                         onClick={() => handleRemovePrerequisite(prereqId)}
                         aria-label="Remove prerequisite"
                       >
@@ -307,18 +323,19 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
             )}
             <select
               id="prerequisite-select"
+              data-test="challenge-prerequisite-select"
               onChange={handleAddPrerequisite}
               defaultValue=""
             >
               <option value="">+ Add prerequisite challenge</option>
               {(formData.goalId
                 ? allChallenges.filter(
-                    (c) => c.goalId === parseInt(formData.goalId, 10)
-                  )
+                  (c) => c.goalId === parseInt(formData.goalId, 10),
+                )
                 : allChallenges
               )
                 .filter(
-                  (c) => !initialChallenge || c.id !== initialChallenge.id
+                  (c) => !initialChallenge || c.id !== initialChallenge.id,
                 )
                 .filter((c) => !formData.prerequisites.includes(c.id))
                 .map((c) => (
@@ -329,7 +346,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
                 ))}
             </select>
             {prereqWarning && (
-              <div className="warning-text" role="alert">
+              <div className="warning-text" role="alert" data-test="prereq-warning">
                 {prereqWarning}
               </div>
             )}
@@ -340,10 +357,10 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null }) => {
           </div>
 
           <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-secondary">
+            <button type="button" onClick={onClose} className="btn-secondary" data-test="challenge-cancel">
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary" data-test="challenge-submit">
               {initialChallenge ? 'Update Challenge' : 'Create Challenge'}
             </button>
           </div>

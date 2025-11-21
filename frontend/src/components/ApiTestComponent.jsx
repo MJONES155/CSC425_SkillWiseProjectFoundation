@@ -15,7 +15,7 @@ const ApiTestComponent = () => {
     } catch (error) {
       console.log(
         'API test failed (expected for unauthenticated requests):',
-        error.message
+        error.message,
       );
     }
   };
@@ -28,7 +28,7 @@ const ApiTestComponent = () => {
     } catch (error) {
       console.log(
         'Profile fetch failed (expected without token):',
-        error.message
+        error.message,
       );
     }
   };

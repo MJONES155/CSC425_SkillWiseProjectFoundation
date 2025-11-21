@@ -53,7 +53,7 @@ api.interceptors.request.use(
     // Don't add auth header to login/register/refresh endpoints
     const publicEndpoints = ['/auth/login', '/auth/register', '/auth/refresh'];
     const isPublicEndpoint = publicEndpoints.some((endpoint) =>
-      config.url?.includes(endpoint)
+      config.url?.includes(endpoint),
     );
 
     if (!isPublicEndpoint) {
@@ -66,7 +66,7 @@ api.interceptors.request.use(
     // Log request in development
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        `🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`
+        `🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`,
       );
     }
 
@@ -75,7 +75,7 @@ api.interceptors.request.use(
   (error) => {
     console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for token refresh logic
@@ -86,7 +86,7 @@ api.interceptors.response.use(
       console.log(
         `✅ API Response: ${response.config.method?.toUpperCase()} ${
           response.config.url
-        } - ${response.status}`
+        } - ${response.status}`,
       );
     }
 
@@ -100,7 +100,7 @@ api.interceptors.response.use(
       console.log(
         `❌ API Error: ${originalRequest?.method?.toUpperCase()} ${
           originalRequest?.url
-        } - ${error.response?.status}`
+        } - ${error.response?.status}`,
       );
     }
 
@@ -109,7 +109,7 @@ api.interceptors.response.use(
       // Don't attempt refresh for auth endpoints (login, register, refresh)
       const authEndpoints = ['/auth/login', '/auth/register', '/auth/refresh'];
       const isAuthEndpoint = authEndpoints.some((endpoint) =>
-        originalRequest?.url?.includes(endpoint)
+        originalRequest?.url?.includes(endpoint),
       );
 
       if (isAuthEndpoint) {
@@ -142,7 +142,7 @@ api.interceptors.response.use(
           {
             withCredentials: true, // Send httpOnly refresh cookie
             timeout: 5000,
-          }
+          },
         );
 
         // Backend responds as { success, message, data: { accessToken, newRefreshToken } }
@@ -179,7 +179,7 @@ api.interceptors.response.use(
         window.dispatchEvent(
           new CustomEvent('auth:logout', {
             detail: { reason: 'token_refresh_failed' },
-          })
+          }),
         );
 
         // Redirect to login page
@@ -200,7 +200,7 @@ api.interceptors.response.use(
       window.dispatchEvent(
         new CustomEvent('api:server-error', {
           detail: { error: error.response.data },
-        })
+        }),
       );
     }
 
@@ -216,7 +216,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // API service methods

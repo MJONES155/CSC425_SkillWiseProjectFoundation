@@ -236,8 +236,8 @@ const ProgressPage = () => {
                     {ev.type === 'challenge_completed'
                       ? '🚀'
                       : ev.type?.includes('goal')
-                      ? '🎯'
-                      : '🧭'}
+                        ? '🎯'
+                        : '🧭'}
                   </Typography>
 
                   <Typography variant="subtitle1" fontWeight={600}>

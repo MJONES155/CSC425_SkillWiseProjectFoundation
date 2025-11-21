@@ -27,51 +27,51 @@ const AUTH_ACTIONS = {
 // Reducer function
 const authReducer = (state, action) => {
   switch (action.type) {
-    case AUTH_ACTIONS.SET_LOADING:
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
+  case AUTH_ACTIONS.SET_LOADING:
+    return {
+      ...state,
+      isLoading: action.payload,
+    };
 
-    case AUTH_ACTIONS.LOGIN_SUCCESS:
-      return {
-        ...state,
-        user: action.payload.user,
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      };
+  case AUTH_ACTIONS.LOGIN_SUCCESS:
+    return {
+      ...state,
+      user: action.payload.user,
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+    };
 
-    case AUTH_ACTIONS.LOGOUT:
-      return {
-        ...state,
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      };
+  case AUTH_ACTIONS.LOGOUT:
+    return {
+      ...state,
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    };
 
-    case AUTH_ACTIONS.UPDATE_USER:
-      return {
-        ...state,
-        user: { ...state.user, ...action.payload },
-      };
+  case AUTH_ACTIONS.UPDATE_USER:
+    return {
+      ...state,
+      user: { ...state.user, ...action.payload },
+    };
 
-    case AUTH_ACTIONS.SET_ERROR:
-      return {
-        ...state,
-        error: action.payload,
-        isLoading: false,
-      };
+  case AUTH_ACTIONS.SET_ERROR:
+    return {
+      ...state,
+      error: action.payload,
+      isLoading: false,
+    };
 
-    case AUTH_ACTIONS.CLEAR_ERROR:
-      return {
-        ...state,
-        error: null,
-      };
+  case AUTH_ACTIONS.CLEAR_ERROR:
+    return {
+      ...state,
+      error: null,
+    };
 
-    default:
-      return state;
+  default:
+    return state;
   }
 };
 

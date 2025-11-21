@@ -20,7 +20,7 @@ const authController = {
 
       const { user, accessToken, refreshToken } = await authService.login(
         email,
-        password
+        password,
       );
 
       console.log('✅ Login successful for user:', {

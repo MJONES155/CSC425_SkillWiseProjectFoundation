@@ -14,12 +14,17 @@ const goalService = {
     // Recalculate progress for each goal based on tagged challenges
     const enriched = [];
     for (const goal of goals) {
-      const progress = await goalService.calculateCompletion(goal.id, userId);
-      enriched.push({
-        ...goal,
-        progressPercentage: progress.percentage,
-        isCompleted: progress.isCompleted,
-      });
+      // If manually marked complete, use stored values; otherwise calculate
+      if (goal.isCompleted && goal.progressPercentage === 100) {
+        enriched.push(goal);
+      } else {
+        const progress = await goalService.calculateCompletion(goal.id, userId);
+        enriched.push({
+          ...goal,
+          progressPercentage: progress.percentage,
+          isCompleted: progress.isCompleted,
+        });
+      }
     }
     return enriched;
   },
@@ -30,6 +35,10 @@ const goalService = {
       where: { id: parseInt(goalId), userId: parseInt(userId) },
     });
     if (!goal) return null;
+    // If manually marked complete, use stored values; otherwise calculate
+    if (goal.isCompleted && goal.progressPercentage === 100) {
+      return goal;
+    }
     const progress = await goalService.calculateCompletion(goal.id, userId);
     return {
       ...goal,
@@ -105,6 +114,13 @@ const goalService = {
             ? new Date(updateData[key])
             : updateData[key];
       }
+    }
+
+    // Set completionDate when manually marking complete
+    if (updateData.isCompleted === true && updateData.progressPercentage === 100) {
+      data.completionDate = new Date();
+    } else if (updateData.isCompleted === false) {
+      data.completionDate = null;
     }
 
     await prisma.goals.updateMany({

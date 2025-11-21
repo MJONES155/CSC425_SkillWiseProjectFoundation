@@ -7,7 +7,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-async function seedDatabase() {
+async function seedDatabase () {
   try {
     console.log('Starting database seeding...');
 

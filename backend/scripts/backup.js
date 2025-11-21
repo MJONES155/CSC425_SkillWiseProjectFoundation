@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-async function backupDatabase() {
+async function backupDatabase () {
   try {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupDir = path.join(__dirname, '../backups');
@@ -31,7 +31,7 @@ async function backupDatabase() {
   }
 }
 
-function runCommand(command) {
+function runCommand (command) {
   return new Promise((resolve, reject) => {
     exec(command, (error, stdout, stderr) => {
       if (error) {

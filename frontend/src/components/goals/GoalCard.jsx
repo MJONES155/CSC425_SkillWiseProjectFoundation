@@ -12,6 +12,7 @@ import IconButton from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { apiService } from '../../services/api';
 import ChallengeCard from '../challenges/ChallengeCard';
+import ChallengeForm from '../challenges/ChallengeForm';
 
 const GoalCard = ({
   goal,
@@ -25,6 +26,7 @@ const GoalCard = ({
   const [expanded, setExpanded] = useState(false);
   const [challenges, setChallenges] = useState([]);
   const [loadingChallenges, setLoadingChallenges] = useState(false);
+  const [showChallengeForm, setShowChallengeForm] = useState(false);
 
   const handleExpandClick = async () => {
     if (!expanded && challenges.length === 0 && goal?.id) {
@@ -57,8 +59,40 @@ const GoalCard = ({
     }
   };
 
+  const openCreateChallenge = () => {
+    setShowChallengeForm(true);
+  };
+
+  const closeCreateChallenge = () => {
+    setShowChallengeForm(false);
+  };
+
+  const handleChallengeCreate = async (challengeData) => {
+    try {
+      // Ensure the created challenge links to this goal
+      const payload = {
+        ...challengeData,
+        goalId: goal?.id || challengeData.goalId,
+      };
+      await apiService.challenges.create(payload);
+      setShowChallengeForm(false);
+      // Reload challenges list under this goal
+      if (goal?.id) {
+        const response = await apiService.challenges.getAll({ goalId: goal.id });
+        setChallenges(response.data?.data ?? response.data ?? []);
+        // Expand to show the newly created challenge
+        if (!expanded) setExpanded(true);
+      }
+    } catch (e) {
+      console.error('Failed to create challenge:', e);
+    }
+  };
+
   return (
-    <Card sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }}>
+    <Card
+      sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }}
+      data-test={`goal-card-${goal.id}`}
+    >
       {/* Header */}
       <Box
         sx={{
@@ -68,7 +102,9 @@ const GoalCard = ({
           mb: 1,
         }}
       >
-        <Typography variant="h6">{goal?.title || 'Goal Title'}</Typography>
+        <Typography variant="h6" data-test="goal-title-text">
+          {goal?.title || 'Goal Title'}
+        </Typography>
         <Chip
           label={goal?.category || 'Category'}
           size="small"
@@ -119,6 +155,7 @@ const GoalCard = ({
             size="small"
             variant="contained"
             color="primary"
+            data-test="goal-mark-completed-btn"
             onClick={() => onMarkComplete(goal.id)}
           >
             Mark Completed
@@ -144,6 +181,18 @@ const GoalCard = ({
             onClick={() => onDelete(goal.id)}
           >
             Delete
+          </Button>
+        )}
+
+        {/* Create Challenge linked to this Goal */}
+        {!goal.isCompleted && (
+          <Button
+            size="small"
+            variant="outlined"
+            color="secondary"
+            onClick={openCreateChallenge}
+          >
+            Add Challenge
           </Button>
         )}
 
@@ -185,11 +234,23 @@ const GoalCard = ({
             </Box>
           ) : (
             <Typography variant="body2" color="text.secondary">
-              No challenges linked to this goal yet.
+              No challenges linked to this goal yet.{' '}
+              <Button size="small" onClick={openCreateChallenge}>
+                Add one
+              </Button>
             </Typography>
           )}
         </Box>
       </Collapse>
+
+      {showChallengeForm && (
+        <ChallengeForm
+          onSubmit={handleChallengeCreate}
+          onClose={closeCreateChallenge}
+          initialChallenge={null}
+          initialGoalId={goal?.id}
+        />
+      )}
     </Card>
   );
 };

@@ -161,7 +161,7 @@ const getClient = async () => {
 const healthCheck = async () => {
   try {
     const result = await query(
-      'SELECT version(), now() as current_time, current_database() as database'
+      'SELECT version(), now() as current_time, current_database() as database',
     );
     return {
       healthy: true,

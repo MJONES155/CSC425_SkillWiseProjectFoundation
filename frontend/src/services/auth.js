@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 export const authService = {
   // TODO: Login user
-  async login(email, password) {
+  async login (email, password) {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, refreshToken, user } = response.data;
@@ -20,7 +20,7 @@ export const authService = {
   },
 
   // TODO: Register new user
-  async register(userData) {
+  async register (userData) {
     try {
       const response = await api.post('/auth/register', userData);
       return response.data;
@@ -30,7 +30,7 @@ export const authService = {
   },
 
   // TODO: Logout user
-  async logout() {
+  async logout () {
     try {
       await api.post('/auth/logout');
     } catch (error) {
@@ -44,7 +44,7 @@ export const authService = {
   },
 
   // TODO: Refresh token
-  async refreshToken() {
+  async refreshToken () {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       const response = await api.post('/auth/refresh', { refreshToken });
@@ -58,13 +58,13 @@ export const authService = {
   },
 
   // TODO: Get current user
-  getCurrentUser() {
+  getCurrentUser () {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
   // TODO: Check if user is authenticated
-  isAuthenticated() {
+  isAuthenticated () {
     return !!localStorage.getItem('authToken');
   },
 };

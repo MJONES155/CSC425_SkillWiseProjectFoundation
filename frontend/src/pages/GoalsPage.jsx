@@ -17,6 +17,7 @@ const GoalsPage = () => {
     difficulty: '',
     search: '',
   });
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const loadGoals = async () => {
@@ -60,8 +61,10 @@ const GoalsPage = () => {
       setShowForm(false);
       setEditingGoal(null);
       await loadGoals();
+      setSuccessMessage('Goal created');
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to save goal');
+      setSuccessMessage('Goal not created');
     } finally {
       setLoading(false);
     }
@@ -132,14 +135,14 @@ const GoalsPage = () => {
 
     if (filters.category) {
       filtered = filtered.filter(
-        (goal) => goal.category.toLowerCase() === filters.category.toLowerCase()
+        (goal) => goal.category.toLowerCase() === filters.category.toLowerCase(),
       );
     }
 
     if (filters.difficulty) {
       filtered = filtered.filter(
         (goal) =>
-          goal.difficulty.toLowerCase() === filters.difficulty.toLowerCase()
+          goal.difficulty.toLowerCase() === filters.difficulty.toLowerCase(),
       );
     }
 
@@ -150,7 +153,7 @@ const GoalsPage = () => {
           (goal.description &&
             goal.description
               .toLowerCase()
-              .includes(filters.search.toLowerCase()))
+              .includes(filters.search.toLowerCase())),
       );
     }
 
@@ -169,7 +172,7 @@ const GoalsPage = () => {
     <div className="goals-page">
       <div className="page-header">
         <h1>My Learning Goals</h1>
-        <button className="btn-primary" onClick={handleCreateGoal}>
+        <button className="btn-primary" onClick={handleCreateGoal} data-test="create-goal-button">
           Create New Goal
         </button>
       </div>
@@ -186,6 +189,7 @@ const GoalsPage = () => {
               placeholder="Search by title, description, or tags..."
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
+              data-test="search-goals"
             />
           </div>
           <div className="filter-group">
@@ -194,6 +198,7 @@ const GoalsPage = () => {
               id="category"
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
+              data-test="goal-filter-category"
             >
               <option value="">All Categories</option>
               <option value="programming">Programming</option>
@@ -208,6 +213,7 @@ const GoalsPage = () => {
               id="difficulty"
               value={filters.difficulty}
               onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+              data-test="goal-filter-difficulty"
             >
               <option value="">All Levels</option>
               <option value="easy">Easy</option>
@@ -238,6 +244,7 @@ const GoalsPage = () => {
                 onMarkComplete={handleMarkComplete}
                 onPause={handlePause}
                 onChallengeComplete={handleChallengeComplete}
+                data-test={`goal-card-${goal.id}`}
               />
             ))}
           </div>
@@ -247,6 +254,7 @@ const GoalsPage = () => {
             <p>Try adjusting your filters or search terms.</p>
             <button
               className="btn-secondary"
+              data-test="clear-goal-filters"
               onClick={() =>
                 setFilters({ category: '', difficulty: '', search: '' })
               }
@@ -256,6 +264,8 @@ const GoalsPage = () => {
           </div>
         )}
       </div>
+
+      {successMessage && <div data-test="goal-success-message">{successMessage}</div>}
 
       {showForm && (
         <GoalForm

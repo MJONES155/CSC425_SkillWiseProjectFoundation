@@ -20,7 +20,9 @@ const ChallengeCard = ({
   const status = challenge?.status || null;
 
   return (
-    <Card sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }}>
+    <Card
+      sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }} data-test={`challenge-card-${challenge?.id}`}
+    >
       {/* Header */}
       <Box
         sx={{
@@ -30,7 +32,7 @@ const ChallengeCard = ({
           mb: 1,
         }}
       >
-        <Typography variant="h6">
+        <Typography variant="h6" data-test="challenge-title-text">
           {challenge?.title || 'Challenge Title'}
         </Typography>
 
@@ -112,6 +114,7 @@ const ChallengeCard = ({
             color="success"
             variant="contained"
             onClick={() => onComplete(challenge.id)}
+            data-test="challenge-mark-complete-btn"
           >
             Mark Complete
           </Button>

@@ -6,7 +6,7 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import '../../styles/Header.css';
 
-export default function HeaderTabs() {
+export default function HeaderTabs () {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -16,26 +16,26 @@ export default function HeaderTabs() {
     setValue(newValue);
     // Navigate when a tab is clicked
     switch (newValue) {
-      case 0:
-        navigate('/dashboard');
-        break;
-      case 1:
-        navigate('/goals');
-        break;
-      case 2:
-        navigate('/challenges');
-        break;
-      case 3:
-        navigate('/progress');
-        break;
-      case 4:
-        navigate('/leaderboard');
-        break;
-      case 5:
-        navigate('/peer-review');
-        break;
-      default:
-        break;
+    case 0:
+      navigate('/dashboard');
+      break;
+    case 1:
+      navigate('/goals');
+      break;
+    case 2:
+      navigate('/challenges');
+      break;
+    case 3:
+      navigate('/progress');
+      break;
+    case 4:
+      navigate('/leaderboard');
+      break;
+    case 5:
+      navigate('/peer-review');
+      break;
+    default:
+      break;
     }
   };
 

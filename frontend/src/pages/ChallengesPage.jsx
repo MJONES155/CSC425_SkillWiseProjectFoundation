@@ -45,7 +45,7 @@ const ChallengesPage = () => {
     if (filters.category) {
       filtered = filtered.filter(
         (challenge) =>
-          challenge.category?.toLowerCase() === filters.category.toLowerCase()
+          challenge.category?.toLowerCase() === filters.category.toLowerCase(),
       );
     }
 
@@ -53,7 +53,7 @@ const ChallengesPage = () => {
       filtered = filtered.filter(
         (challenge) =>
           challenge.difficulty?.toLowerCase() ===
-          filters.difficulty.toLowerCase()
+          filters.difficulty.toLowerCase(),
       );
     }
 
@@ -67,8 +67,8 @@ const ChallengesPage = () => {
             ?.toLowerCase()
             .includes(filters.search.toLowerCase()) ||
           challenge.tags?.some((tag) =>
-            tag.toLowerCase().includes(filters.search.toLowerCase())
-          )
+            tag.toLowerCase().includes(filters.search.toLowerCase()),
+          ),
       );
     }
 
@@ -142,7 +142,7 @@ const ChallengesPage = () => {
       <div className="page-header">
         <h1>Learning Challenges</h1>
         <p>Enhance your skills with hands-on learning experiences</p>
-        <button className="btn-primary" onClick={handleCreateChallenge}>
+        <button className="btn-primary" onClick={handleCreateChallenge} data-test="create-challenge-button">
           Create New Challenge
         </button>
       </div>

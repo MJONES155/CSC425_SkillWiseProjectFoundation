@@ -4,7 +4,7 @@ const logger = require('pino')({
 });
 
 class AppError extends Error {
-  constructor(message, statusCode, code = null) {
+  constructor (message, statusCode, code = null) {
     super(message);
     this.statusCode = statusCode;
     this.code = code;
@@ -37,7 +37,7 @@ const handleJWTError = () => {
   return new AppError(
     'Invalid token. Please log in again.',
     401,
-    'INVALID_TOKEN'
+    'INVALID_TOKEN',
   );
 };
 
@@ -45,7 +45,7 @@ const handleJWTExpiredError = () => {
   return new AppError(
     'Your token has expired. Please log in again.',
     401,
-    'TOKEN_EXPIRED'
+    'TOKEN_EXPIRED',
   );
 };
 

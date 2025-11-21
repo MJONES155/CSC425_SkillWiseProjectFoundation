@@ -26,7 +26,7 @@ import Header from './components/common/Header.jsx';
 // import Navbar from './components/layout/Navbar';
 // import Footer from './components/layout/Footer';
 
-function App() {
+function App () {
   return (
     <AuthProvider>
       <Router>

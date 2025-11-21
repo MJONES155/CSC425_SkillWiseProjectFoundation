@@ -1,7 +1,7 @@
 const db = require('../database/connection');
 
 class Leaderboard {
-  static async getGlobalLeaderboard(limit = 10) {
+  static async getGlobalLeaderboard (limit = 10) {
     try {
       const query = `
         SELECT 
@@ -27,7 +27,7 @@ class Leaderboard {
     }
   }
 
-  static async getWeeklyLeaderboard(limit = 10) {
+  static async getWeeklyLeaderboard (limit = 10) {
     try {
       const query = `
         SELECT 
@@ -52,7 +52,7 @@ class Leaderboard {
     }
   }
 
-  static async getMonthlyLeaderboard(limit = 10) {
+  static async getMonthlyLeaderboard (limit = 10) {
     try {
       const query = `
         SELECT 
@@ -77,7 +77,7 @@ class Leaderboard {
     }
   }
 
-  static async getUserRank(userId) {
+  static async getUserRank (userId) {
     try {
       const query = `
         WITH user_rankings AS (
@@ -101,7 +101,7 @@ class Leaderboard {
     }
   }
 
-  static async getSubjectLeaderboard(subject, limit = 10) {
+  static async getSubjectLeaderboard (subject, limit = 10) {
     try {
       const query = `
         SELECT 
