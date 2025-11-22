@@ -32,12 +32,16 @@ Cypress.Commands.add('signup', (user) => {
   cy.get('[data-test=confirmPassword]').clear().type(user.password);
 
   // Set up intercept right before clicking to ensure it catches the request
-  cy.intercept('POST', '**/auth/register').as('registerRequest');
+  cy.intercept('POST', '**/api/auth/register').as('registerRequest');
+
+  // Log what we're about to do
+  cy.log('About to click signup button for:', user.email);
 
   cy.get('[data-test=signup-button]').should('be.visible').click();
 
   // Wait for either success navigation OR capture any error
   cy.wait('@registerRequest', { timeout: 10000 }).then((interception) => {
+    cy.log('Register Request URL:', interception.request.url);
     cy.log('Register Status:', interception.response.statusCode);
     cy.log('Register Body:', JSON.stringify(interception.response.body));
 
