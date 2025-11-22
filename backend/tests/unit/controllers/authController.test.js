@@ -57,7 +57,7 @@ describe('AuthController Unit Tests', () => {
 
       expect(authService.login).toHaveBeenCalledWith(
         'test@example.com',
-        'Password123!',
+        'Password123!'
       );
       expect(mockRes.cookie).toHaveBeenCalledWith(
         'refreshToken',
@@ -65,7 +65,7 @@ describe('AuthController Unit Tests', () => {
         expect.objectContaining({
           httpOnly: true,
           sameSite: 'Strict',
-        }),
+        })
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -161,7 +161,7 @@ describe('AuthController Unit Tests', () => {
       expect(mockRes.cookie).toHaveBeenCalledWith(
         'refreshToken',
         'mock-refresh-token',
-        expect.any(Object),
+        expect.any(Object)
       );
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -220,8 +220,14 @@ describe('AuthController Unit Tests', () => {
       authService.register.mockRejectedValue(error);
 
       await authController.register(mockReq, mockRes, mockNext);
-
-      expect(mockNext).toHaveBeenCalledWith(error);
+      // Controller now handles errors directly instead of passing to next()
+      expect(mockNext).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(409);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Email already exists',
+        code: 'DUPLICATE',
+      });
     });
   });
 
@@ -263,12 +269,12 @@ describe('AuthController Unit Tests', () => {
       await authController.refreshToken(mockReq, mockRes, mockNext);
 
       expect(authService.refreshToken).toHaveBeenCalledWith(
-        'valid-refresh-token',
+        'valid-refresh-token'
       );
       expect(mockRes.cookie).toHaveBeenCalledWith(
         'refreshToken',
         'new-refresh-token',
-        expect.any(Object),
+        expect.any(Object)
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
@@ -294,7 +300,7 @@ describe('AuthController Unit Tests', () => {
       await authController.refreshToken(mockReq, mockRes, mockNext);
 
       expect(authService.refreshToken).toHaveBeenCalledWith(
-        'valid-refresh-token',
+        'valid-refresh-token'
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
