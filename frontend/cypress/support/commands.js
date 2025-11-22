@@ -30,7 +30,13 @@ Cypress.Commands.add("signup", (user) => {
   cy.get("[data-test=confirmPassword]").type(user.password);
 
   cy.get("[data-test=signup-button]").click();
-
+  // Wait until signup completes and app navigates
+  cy.url({ timeout: 20000 }).should("include", "/dashboard");
+  // Ensure access token is stored (authentication complete)
+  cy.window().then((win) => {
+    const token = win.localStorage.getItem("access_token");
+    expect(token, "access token present after signup").to.be.a("string").and.not.be.empty;
+  });
   
 });
 
