@@ -2,9 +2,14 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [main, develop, Sprint*]
+    branches:
+      - main
+      - develop
+      - Sprint*
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
 
 jobs:
   lint:
