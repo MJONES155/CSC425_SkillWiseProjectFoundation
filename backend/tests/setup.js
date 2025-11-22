@@ -1,9 +1,15 @@
 // TODO: Test environment setup and configuration
 const { Pool } = require('pg');
 
+// Determine if this is an integration test or unit test
+const isIntegrationTest = process.argv.some((arg) =>
+  arg.includes('integration'),
+);
+
 // Test database configuration
 const testDbConfig = {
-  connectionString: process.env.TEST_DATABASE_URL || 
+  connectionString:
+    process.env.TEST_DATABASE_URL ||
     'postgresql://skillwise_user:skillwise_pass@localhost:5432/skillwise_test_db',
   // Reduce connections for test environment
   max: 5,
@@ -11,7 +17,7 @@ const testDbConfig = {
   connectionTimeoutMillis: 1000,
 };
 
-const testPool = new Pool(testDbConfig);
+const testPool = isIntegrationTest ? new Pool(testDbConfig) : null;
 
 // Global test setup
 beforeAll(async () => {
@@ -19,26 +25,29 @@ beforeAll(async () => {
   process.env.NODE_ENV = 'test';
   process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
   process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-key-for-testing-only';
-  
-  // Test database connection
-  try {
-    await testPool.query('SELECT 1');
-    console.log('✅ Test database connected');
-  } catch (err) {
-    console.error('❌ Test database connection failed:', err.message);
-    throw err;
+
+  // Test database connection only for integration tests
+  if (isIntegrationTest && testPool) {
+    try {
+      await testPool.query('SELECT 1');
+      console.log('✅ Test database connected');
+    } catch (err) {
+      console.error('❌ Test database connection failed:', err.message);
+      throw err;
+    }
+  } else {
+    console.log('⚡ Running unit tests without database');
   }
 });
 
 // Global test cleanup
 afterAll(async () => {
   try {
-    // Clean up test data if needed
-    // await testPool.query('TRUNCATE TABLE users CASCADE');
-    
-    // Close database connections
-    await testPool.end();
-    console.log('✅ Test database cleanup completed');
+    // Close database connections only if pool exists
+    if (testPool) {
+      await testPool.end();
+    }
+    console.log('✅ Test cleanup completed');
   } catch (err) {
     console.error('❌ Test cleanup failed:', err.message);
   }
@@ -48,7 +57,7 @@ afterAll(async () => {
 const clearTestData = async () => {
   const tables = [
     'user_achievements',
-    'achievements', 
+    'achievements',
     'leaderboard',
     'progress_events',
     'peer_reviews',
@@ -57,7 +66,7 @@ const clearTestData = async () => {
     'challenges',
     'goals',
     'refresh_tokens',
-    'users'
+    'users',
   ];
 
   for (const table of tables) {
@@ -73,5 +82,5 @@ const clearTestData = async () => {
 // Export test utilities
 module.exports = {
   testPool,
-  clearTestData
+  clearTestData,
 };

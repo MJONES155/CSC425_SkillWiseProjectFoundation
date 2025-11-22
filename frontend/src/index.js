@@ -2,7 +2,7 @@
 import { StrictMode } from 'react';
 import App from './App.jsx';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext.jsx';
 //END ESLINT
 
 import { createRoot } from 'react-dom/client';
@@ -15,5 +15,5 @@ root.render(
     <AuthProvider>
       <App />
     </AuthProvider>
-  </StrictMode>
+  </StrictMode>,
 );

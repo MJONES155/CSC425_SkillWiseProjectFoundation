@@ -15,16 +15,16 @@ const validatePassword = (password) => {
     .max(128, 'Password too long')
     .regex(
       /^(?=.*[a-z])/,
-      'Password must contain at least one lowercase letter'
+      'Password must contain at least one lowercase letter',
     )
     .regex(
       /^(?=.*[A-Z])/,
-      'Password must contain at least one uppercase letter'
+      'Password must contain at least one uppercase letter',
     )
     .regex(/^(?=.*\d)/, 'Password must contain at least one number')
     .regex(
       /^(?=.*[@$!%*?&])/,
-      'Password must contain at least one special character'
+      'Password must contain at least one special character',
     );
 
   const result = passwordSchema.safeParse(password);
@@ -42,7 +42,7 @@ const validateUsername = (username) => {
     .max(30, 'Username must be less than 30 characters')
     .regex(
       /^[a-zA-Z0-9_]+$/,
-      'Username can only contain letters, numbers, and underscores'
+      'Username can only contain letters, numbers, and underscores',
     );
 
   return usernameSchema.safeParse(username).success;

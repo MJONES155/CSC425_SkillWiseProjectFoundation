@@ -1,7 +1,7 @@
 const db = require('../database/connection');
 
 class Challenge {
-  static async findAll() {
+  static async findAll () {
     try {
       const query =
         'SELECT * FROM challenges ORDER BY difficulty, created_at DESC';
@@ -12,7 +12,7 @@ class Challenge {
     }
   }
 
-  static async findById(challengeId) {
+  static async findById (challengeId) {
     try {
       const query = 'SELECT * FROM challenges WHERE id = $1';
       const result = await db.query(query, [challengeId]);
@@ -22,7 +22,7 @@ class Challenge {
     }
   }
 
-  static async findByDifficulty(difficulty) {
+  static async findByDifficulty (difficulty) {
     try {
       const query =
         'SELECT * FROM challenges WHERE difficulty = $1 ORDER BY created_at DESC';
@@ -30,12 +30,12 @@ class Challenge {
       return result.rows;
     } catch (error) {
       throw new Error(
-        `Error finding challenges by difficulty: ${error.message}`
+        `Error finding challenges by difficulty: ${error.message}`,
       );
     }
   }
 
-  static async findBySubject(subject) {
+  static async findBySubject (subject) {
     try {
       const query =
         'SELECT * FROM challenges WHERE subject = $1 ORDER BY difficulty, created_at DESC';
@@ -46,7 +46,7 @@ class Challenge {
     }
   }
 
-  static async create(challengeData) {
+  static async create (challengeData) {
     try {
       const { title, description, difficulty, subject, points, type, content } =
         challengeData;
@@ -70,7 +70,7 @@ class Challenge {
     }
   }
 
-  static async update(challengeId, updateData) {
+  static async update (challengeId, updateData) {
     try {
       const { title, description, difficulty, subject, points, type, content } =
         updateData;
@@ -103,7 +103,7 @@ class Challenge {
     }
   }
 
-  static async delete(challengeId) {
+  static async delete (challengeId) {
     try {
       const query = 'DELETE FROM challenges WHERE id = $1 RETURNING *';
       const result = await db.query(query, [challengeId]);

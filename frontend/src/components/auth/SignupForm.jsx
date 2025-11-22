@@ -45,6 +45,7 @@ const SignupForm = ({ onSubmit }) => {
             type="text"
             id="firstName"
             name="firstName"
+            data-test="firstName"
             value={formData.firstName}
             onChange={(e) =>
               setFormData({ ...formData, firstName: e.target.value })
@@ -59,6 +60,7 @@ const SignupForm = ({ onSubmit }) => {
             type="text"
             id="lastName"
             name="lastName"
+            data-test="lastName"
             value={formData.lastName}
             onChange={(e) =>
               setFormData({ ...formData, lastName: e.target.value })
@@ -73,6 +75,7 @@ const SignupForm = ({ onSubmit }) => {
         <input
           type="email"
           id="email"
+          data-test="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
@@ -84,6 +87,7 @@ const SignupForm = ({ onSubmit }) => {
         <input
           type="password"
           id="password"
+          data-test="password"
           value={formData.password}
           onChange={(e) =>
             setFormData({ ...formData, password: e.target.value })
@@ -98,6 +102,7 @@ const SignupForm = ({ onSubmit }) => {
           type="password"
           id="confirmPassword"
           name="confirmPassword"
+          data-test="confirmPassword"
           value={formData.confirmPassword}
           onChange={(e) =>
             setFormData({ ...formData, confirmPassword: e.target.value })
@@ -106,7 +111,7 @@ const SignupForm = ({ onSubmit }) => {
         />
       </div>
 
-      <button type="submit" className="btn-primary">
+      <button type="submit" className="btn-primary" data-test="signup-button">
         Create Account
       </button>
     </form>

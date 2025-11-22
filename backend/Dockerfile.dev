@@ -26,4 +26,5 @@ RUN mkdir -p logs
 EXPOSE 3001
 
 # Start development server with hot reload
-CMD ["npm", "run", "dev"]
+#CMD ["npm", "run", "dev"]
+CMD ["node", "src/server.js"]

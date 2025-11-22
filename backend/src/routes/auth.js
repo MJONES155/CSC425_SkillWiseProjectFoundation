@@ -11,7 +11,7 @@ router.post('/login', validation.loginValidation, authController.login);
 router.post(
   '/register',
   validation.registerValidation,
-  authController.register
+  authController.register,
 );
 
 // TODO: Add POST /logout route

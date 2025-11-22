@@ -1,44 +1,147 @@
-// TODO: Implement challenge card component
 import React from 'react';
+import { Link } from 'react-router-dom';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 
-const ChallengeCard = ({ challenge }) => {
-  // TODO: Add difficulty indicators, estimated time, tags, actions
+const ChallengeCard = ({
+  challenge,
+  onEdit,
+  onDelete,
+  onStart,
+  onComplete,
+}) => {
+  const difficulty = challenge?.difficulty || 'Medium';
+  const status = challenge?.status || null;
+
   return (
-    <div className="challenge-card">
-      <div className="challenge-header">
-        <h3>{challenge?.title || 'Challenge Title'}</h3>
-        <div className="challenge-meta">
-          <span className="difficulty">
-            {challenge?.difficulty || 'Medium'}
-          </span>
-          <span className="points">+{challenge?.points || 10} pts</span>
-        </div>
-      </div>
+    <Card
+      sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }} data-test={`challenge-card-${challenge?.id}`}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          mb: 1,
+        }}
+      >
+        <Typography variant="h6" data-test="challenge-title-text">
+          {challenge?.title || 'Challenge Title'}
+        </Typography>
 
-      <div className="challenge-content">
-        <p>{challenge?.description || 'Challenge description goes here...'}</p>
+        <Stack spacing={1} alignItems="flex-end">
+          <Chip label={difficulty} color="secondary" size="small" />
+          <Chip
+            label={`+${challenge?.pointsReward || 10} pts`}
+            color="primary"
+            size="small"
+            variant="outlined"
+          />
+          {status && (
+            <Chip
+              label={status.replace('_', ' ')}
+              color={status === 'completed' ? 'success' : 'warning'}
+              size="small"
+            />
+          )}
+        </Stack>
+      </Box>
 
-        {challenge?.estimatedTime && (
-          <div className="estimated-time">
-            <span>⏱️ {challenge.estimatedTime} min</span>
-          </div>
+      {/* Content */}
+      <CardContent sx={{ p: 0, mb: 1 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          {challenge?.description || 'Challenge description goes here...'}
+        </Typography>
+
+        {/* Instructions */}
+        {challenge?.instructions && (
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="subtitle2">Instructions:</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {challenge.instructions}
+            </Typography>
+          </Box>
         )}
 
-        {challenge?.tags && (
-          <div className="challenge-tags">
-            {challenge.tags.map((tag, index) => (
-              <span key={index} className="tag">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+        {/* Metadata */}
+        <Stack spacing={1} sx={{ mb: 1 }}>
+          {challenge?.category && (
+            <Typography variant="body2">📁 {challenge.category}</Typography>
+          )}
 
-      <div className="challenge-footer">
-        <button className="btn-primary">Start Challenge</button>
-      </div>
-    </div>
+          {challenge?.estimatedTimeMinutes && (
+            <Typography variant="body2">
+              ⏱️ {challenge.estimatedTimeMinutes} min
+            </Typography>
+          )}
+
+          {challenge?.maxAttempts && (
+            <Typography variant="body2">
+              🎯 Max attempts: {challenge.maxAttempts}
+            </Typography>
+          )}
+
+          {typeof challenge?.goalId === 'number' && (
+            <Typography variant="body2">
+              <Link to={`/goals/${challenge.goalId}`}>View Goal</Link>
+            </Typography>
+          )}
+        </Stack>
+      </CardContent>
+
+      {/* Actions */}
+      <CardActions sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {onStart && (
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => onStart(challenge)}
+          >
+            Start Challenge
+          </Button>
+        )}
+
+        {onComplete && challenge?.status !== 'completed' && (
+          <Button
+            size="small"
+            color="success"
+            variant="contained"
+            onClick={() => onComplete(challenge.id)}
+            data-test="challenge-mark-complete-btn"
+          >
+            Mark Complete
+          </Button>
+        )}
+
+        {onEdit && (
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => onEdit(challenge)}
+          >
+            Edit
+          </Button>
+        )}
+
+        {onDelete && (
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            onClick={() => onDelete(challenge.id)}
+          >
+            Delete
+          </Button>
+        )}
+      </CardActions>
+    </Card>
   );
 };
 

@@ -20,7 +20,7 @@ const registerSchema = z.object({
         .min(8, 'Password must be at least 8 characters')
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-          'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+          'Password must contain at least one lowercase letter, one uppercase letter, and one number',
         ),
       firstName: z
         .string()
@@ -33,7 +33,7 @@ const registerSchema = z.object({
       confirmPassword: z.string(),
     })
     .refine((data) => data.password === data.confirmPassword, {
-      message: "Passwords don't match",
+      message: 'Passwords don\'t match',
       path: ['confirmPassword'],
     }),
 });
@@ -46,8 +46,31 @@ const goalSchema = z.object({
       .max(255, 'Title too long'),
     description: z.string().optional(),
     category: z.string().optional(),
-    difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
-    targetCompletionDate: z.string().datetime().optional(),
+    difficulty: z
+      .enum(['easy', 'medium', 'hard', 'Easy', 'Medium', 'Hard'])
+      .default('medium'),
+    // Accept date-only strings like 'YYYY-MM-DD' or full ISO datetime
+    targetCompletionDate: z.string().optional(),
+  }),
+});
+
+const goalUpdateSchema = z.object({
+  body: z.object({
+    title: z
+      .string()
+      .min(1, 'Goal title is required')
+      .max(255, 'Title too long')
+      .optional(),
+    description: z.string().optional(),
+    category: z.string().optional(),
+    difficulty: z
+      .enum(['easy', 'medium', 'hard', 'Easy', 'Medium', 'Hard', 'paused'])
+      .optional(),
+    targetCompletionDate: z.string().optional(),
+    isCompleted: z.boolean().optional(),
+    progressPercentage: z.coerce.number().int().min(0).max(100).optional(),
+    pointsReward: z.coerce.number().int().min(0).optional(),
+    isPublic: z.boolean().optional(),
   }),
 });
 
@@ -59,11 +82,52 @@ const challengeSchema = z.object({
       .max(255, 'Title too long'),
     description: z.string().min(1, 'Description is required'),
     instructions: z.string().min(1, 'Instructions are required'),
-    category: z.string().min(1, 'Category is required'),
-    difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
-    estimatedTimeMinutes: z.number().int().positive().optional(),
-    pointsReward: z.number().int().positive().default(10),
-    maxAttempts: z.number().int().positive().default(3),
+    category: z.string().optional(),
+    difficulty: z
+      .enum(['easy', 'medium', 'hard', 'Easy', 'Medium', 'Hard'])
+      .optional(),
+    estimatedTimeMinutes: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .nullable(),
+    pointsReward: z.coerce.number().int().positive().optional().nullable(),
+    maxAttempts: z.coerce.number().int().positive().optional().nullable(),
+    // Optional linkage to a goal, validated in service
+    goalId: z.coerce.number().int().positive().optional().nullable(),
+    // Optional array of prerequisite challenge IDs
+    prerequisites: z
+      .array(z.union([z.coerce.number().int().positive(), z.string()]))
+      .optional(),
+  }),
+});
+
+const challengeUpdateSchema = z.object({
+  body: z.object({
+    title: z
+      .string()
+      .min(1, 'Challenge title is required')
+      .max(255, 'Title too long')
+      .optional(),
+    description: z.string().min(1, 'Description is required').optional(),
+    instructions: z.string().min(1, 'Instructions are required').optional(),
+    category: z.string().optional(),
+    difficulty: z
+      .enum(['easy', 'medium', 'hard', 'Easy', 'Medium', 'Hard'])
+      .optional(),
+    estimatedTimeMinutes: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .nullable(),
+    pointsReward: z.coerce.number().int().positive().optional().nullable(),
+    maxAttempts: z.coerce.number().int().positive().optional().nullable(),
+    goalId: z.coerce.number().int().positive().optional().nullable(),
+    prerequisites: z
+      .array(z.union([z.coerce.number().int().positive(), z.string()]))
+      .optional(),
   }),
 });
 
@@ -89,8 +153,8 @@ const validate = (schema) => {
           new AppError(
             `Validation error: ${errors.map((e) => e.message).join(', ')}`,
             400,
-            'VALIDATION_ERROR'
-          )
+            'VALIDATION_ERROR',
+          ),
         );
       }
 
@@ -107,19 +171,25 @@ const validate = (schema) => {
 const loginValidation = validate(loginSchema);
 const registerValidation = validate(registerSchema);
 const goalValidation = validate(goalSchema);
+const goalUpdateValidation = validate(goalUpdateSchema);
 const challengeValidation = validate(challengeSchema);
+const challengeUpdateValidation = validate(challengeUpdateSchema);
 
 module.exports = {
   validate,
   loginValidation,
   registerValidation,
   goalValidation,
+  goalUpdateValidation,
   challengeValidation,
+  challengeUpdateValidation,
   // Export schemas for testing
   schemas: {
     loginSchema,
     registerSchema,
     goalSchema,
+    goalUpdateSchema,
     challengeSchema,
+    challengeUpdateSchema,
   },
 };

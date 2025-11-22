@@ -1,7 +1,7 @@
 const db = require('../database/connection');
 
 class Progress {
-  static async findByUserId(userId) {
+  static async findByUserId (userId) {
     try {
       const query =
         'SELECT * FROM progress WHERE user_id = $1 ORDER BY created_at DESC';
@@ -12,7 +12,7 @@ class Progress {
     }
   }
 
-  static async findByUserAndChallenge(userId, challengeId) {
+  static async findByUserAndChallenge (userId, challengeId) {
     try {
       const query =
         'SELECT * FROM progress WHERE user_id = $1 AND challenge_id = $2';
@@ -23,7 +23,7 @@ class Progress {
     }
   }
 
-  static async getUserStats(userId) {
+  static async getUserStats (userId) {
     try {
       const query = `
         SELECT 
@@ -41,7 +41,7 @@ class Progress {
     }
   }
 
-  static async create(progressData) {
+  static async create (progressData) {
     try {
       const {
         user_id,
@@ -70,7 +70,7 @@ class Progress {
     }
   }
 
-  static async update(progressId, updateData) {
+  static async update (progressId, updateData) {
     try {
       const { score, completed, points_earned, time_spent } = updateData;
       const query = `
@@ -96,7 +96,7 @@ class Progress {
     }
   }
 
-  static async getLeaderboardData(limit = 10) {
+  static async getLeaderboardData (limit = 10) {
     try {
       const query = `
         SELECT 

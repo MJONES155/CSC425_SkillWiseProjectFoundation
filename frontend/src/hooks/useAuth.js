@@ -1,2 +1,2 @@
-// Re-export useAuth hook from AuthContext for convenience
-export { useAuth } from '../contexts/AuthContext';
+// Re-export useAuth hook from the React context (ensure we use the .jsx file)
+export { useAuth } from '../contexts/AuthContext.jsx';

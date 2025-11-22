@@ -53,53 +53,53 @@ model challenges {
   description            String
   instructions           String
   category               String            @db.VarChar(100)
-  difficulty_level       String?           @default("medium") @db.VarChar(20)
-  estimated_time_minutes Int?
-  points_reward          Int?              @default(10)
-  max_attempts           Int?              @default(3)
-  requires_peer_review   Boolean?          @default(false)
-  is_active              Boolean?          @default(true)
-  created_by             Int?
+  difficulty             String?           @map("difficulty_level") @default("medium") @db.VarChar(20)
+  estimatedTimeMinutes   Int?              @map("estimated_time_minutes")
+  pointsReward           Int?              @map("points_reward") @default(10)
+  maxAttempts            Int?              @map("max_attempts") @default(3)
+  requiresPeerReview     Boolean?          @map("requires_peer_review") @default(false)
+  isActive               Boolean?          @map("is_active") @default(true)
+  createdBy              Int?              @map("created_by")
   tags                   String[]
   prerequisites          String[]
-  learning_objectives    String[]
-  created_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  users                  User?            @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  learningObjectives     String[]          @map("learning_objectives")
+  createdAt              DateTime?         @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime?         @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users                  User?            @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
   progress_events        progress_events[]
   submissions            submissions[]
 
   @@index([category], map: "idx_challenges_category")
-  @@index([created_by], map: "idx_challenges_created_by")
-  @@index([difficulty_level], map: "idx_challenges_difficulty")
-  @@index([is_active], map: "idx_challenges_is_active")
+  @@index([createdBy], map: "idx_challenges_created_by")
+  @@index([difficulty], map: "idx_challenges_difficulty")
+  @@index([isActive], map: "idx_challenges_is_active")
   @@index([tags], map: "idx_challenges_tags", type: Gin)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model goals {
   id                     Int               @id @default(autoincrement())
-  user_id                Int
+  userId                 Int               @map("user_id")
   title                  String            @db.VarChar(255)
   description            String?
   category               String?           @db.VarChar(100)
-  difficulty_level       String?           @default("medium") @db.VarChar(20)
-  target_completion_date DateTime?         @db.Date
-  is_completed           Boolean?          @default(false)
-  completion_date        DateTime?         @db.Timestamptz(6)
-  progress_percentage    Int?              @default(0)
-  points_reward          Int?              @default(0)
-  is_public              Boolean?          @default(false)
-  created_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?         @default(now()) @db.Timestamptz(6)
-  users                  User             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  difficulty             String?            @map("difficulty_level") @default("medium") @db.VarChar(20)
+  targetCompletionDate DateTime?           @map("target_completion_date") @db.Date
+  isCompleted           Boolean?           @map("is_completed") @default(false)
+  completionDate        DateTime?          @map("completion_date") @db.Timestamptz(6)
+  progressPercentage    Int?               @map("progress_percentage")@default(0)
+  pointsReward          Int?               @map("points_reward") @default(0)
+  isPublic              Boolean?           @map("is_public") @default(false)
+  createdAt             DateTime?         @map("created_at")@default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime?         @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users                  User             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   progress_events        progress_events[]
 
   @@index([category], map: "idx_goals_category")
-  @@index([completion_date], map: "idx_goals_completion_date")
-  @@index([difficulty_level], map: "idx_goals_difficulty")
-  @@index([is_completed], map: "idx_goals_is_completed")
-  @@index([user_id], map: "idx_goals_user_id")
+  @@index([completionDate], map: "idx_goals_completion_date")
+  @@index([difficulty], map: "idx_goals_difficulty")
+  @@index([isCompleted], map: "idx_goals_is_completed")
+  @@index([userId], map: "idx_goals_user_id")
 }
 
 model leaderboard {
@@ -157,28 +157,28 @@ model peer_reviews {
 
 model progress_events {
   id                    Int          @id @default(autoincrement())
-  user_id               Int
-  event_type            String       @db.VarChar(50)
-  event_data            Json?
-  points_earned         Int?         @default(0)
-  related_goal_id       Int?
-  related_challenge_id  Int?
-  related_submission_id Int?
-  session_id            String?      @db.VarChar(255)
-  timestamp_occurred    DateTime?    @default(now()) @db.Timestamptz(6)
-  created_at            DateTime?    @default(now()) @db.Timestamptz(6)
-  challenges            challenges?  @relation(fields: [related_challenge_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  goals                 goals?       @relation(fields: [related_goal_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  submissions           submissions? @relation(fields: [related_submission_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users                 User        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userId               Int          @map("user_id")
+  eventType            String       @map("event_type")@db.VarChar(50)
+  eventData            Json?        @map("event_data")
+  pointsEarned         Int?         @map("points_earned") @default(0)
+  relatedGoalId       Int?         @map("related_goal_id") 
+  relatedChallengeId  Int?         @map("related_challenge_id")
+  relatedSubmissionId Int?         @map("related_submission_id")
+  sessionId            String?      @map("session_id") @db.VarChar(255)
+  timestampOccurred    DateTime?    @map("timestamp_occurred") @default(now()) @db.Timestamptz(6)
+  createdAt            DateTime?    @map("created_at") @default(now()) @db.Timestamptz(6)
+  challenges            challenges?  @relation(fields: [relatedChallengeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  goals                 goals?       @relation(fields: [relatedGoalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  submissions           submissions? @relation(fields: [relatedSubmissionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                 User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([related_challenge_id], map: "idx_progress_events_challenge_id")
-  @@index([event_data], map: "idx_progress_events_data", type: Gin)
-  @@index([related_goal_id], map: "idx_progress_events_goal_id")
-  @@index([session_id], map: "idx_progress_events_session")
-  @@index([timestamp_occurred], map: "idx_progress_events_timestamp")
-  @@index([event_type], map: "idx_progress_events_type")
-  @@index([user_id], map: "idx_progress_events_user_id")
+  @@index([relatedChallengeId], map: "idx_progress_events_challenge_id")
+  @@index([eventData], map: "idx_progress_events_data", type: Gin)
+  @@index([relatedGoalId], map: "idx_progress_events_goal_id")
+  @@index([sessionId], map: "idx_progress_events_session")
+  @@index([timestampOccurred], map: "idx_progress_events_timestamp")
+  @@index([eventType], map: "idx_progress_events_type")
+  @@index([userId], map: "idx_progress_events_user_id")
 }
 
 model refresh_tokens {
@@ -246,44 +246,44 @@ model user_achievements {
 
 model user_statistics {
   id                          Int       @id @default(autoincrement())
-  user_id                     Int       @unique
-  total_points                Int?      @default(0)
-  total_challenges_completed  Int?      @default(0)
-  total_goals_completed       Int?      @default(0)
-  total_peer_reviews_given    Int?      @default(0)
-  total_peer_reviews_received Int?      @default(0)
-  average_score               Decimal?  @default(0) @db.Decimal(5, 2)
-  current_streak_days         Int?      @default(0)
-  longest_streak_days         Int?      @default(0)
-  total_time_spent_minutes    Int?      @default(0)
+  userId                     Int       @map("user_id") @unique
+  totalPoints                Int?      @map("total_points") @default(0)
+  totalChallengesCompleted  Int?      @map("total_challenges_completed") @default(0)
+  totalGoalsCompleted       Int?      @map("total_goals_completed") @default(0)
+  totalPeerReviewsGiven    Int?      @map("total_peer_reviews_given") @default(0)
+  totalPeerReviewsReceived Int?      @map("total_peer_reviews_received") @default(0)
+  averageScore               Decimal?  @map("average_score") @default(0) @db.Decimal(5, 2)
+  currentStreakDays         Int?      @map("current_streak_days") @default(0)
+  longestStreakDays         Int?      @map("longest_streak_days") @default(0)
+  totalTimeSpentMinutes    Int?      @map("total_time_spent_minutes") @default(0)
   level                       Int?      @default(1)
-  experience_points           Int?      @default(0)
-  rank_position               Int?
-  last_activity_date          DateTime? @db.Date
-  created_at                  DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at                  DateTime? @default(now()) @db.Timestamptz(6)
-  users                       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  experiencePoints           Int?      @map("experience_points") @default(0)
+  rankPosition               Int?      @map("rank_position")
+  lastActivityDate          DateTime? @map("last_activity_date ") @db.Date
+  createdAt                  DateTime? @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt                  DateTime? @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users                       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([last_activity_date], map: "idx_user_stats_activity")
+  @@index([lastActivityDate], map: "idx_user_stats_activity")
   @@index([level(sort: Desc)], map: "idx_user_stats_level")
-  @@index([rank_position], map: "idx_user_stats_rank")
-  @@index([total_points(sort: Desc)], map: "idx_user_stats_total_points")
+  @@index([rankPosition], map: "idx_user_stats_rank")
+  @@index([totalPoints(sort: Desc)], map: "idx_user_stats_total_points")
 }
 
 model User {
   id                                           Int                 @id @default(autoincrement())
   email                                       String              @unique @db.VarChar(255)
-  password                                    String              @db.VarChar(255)
-  firstName                                   String              @db.VarChar(100)
-  lastName                                    String              @db.VarChar(100)
-  profileImage                                String?             @db.VarChar(255)
+  password                                    String              @map("password_hash") @db.VarChar(255)
+  firstName                                   String              @map("first_name")@db.VarChar(100)
+  lastName                                    String              @map("last_name")@db.VarChar(100)
+  profileImage                                String?             @map("profile_image")@db.VarChar(255)
   bio                                          String?
-  isActive                                    Boolean?            @default(true)
-  isVerified                                  Boolean?            @default(false)
-  role                                         String?             @default("student") @db.VarChar(20)
-  createdAt                                   DateTime?           @default(now()) @db.Timestamptz(6)
-  updatedAt                                   DateTime?           @default(now()) @db.Timestamptz(6)
-  lastLogin                                   DateTime?           @db.Timestamptz(6)
+  isActive                                    Boolean?            @map("is_active") @default(true)
+  isVerified                                  Boolean?            @map("is_verified") @default(false)
+  role                                         String?            @default("student") @db.VarChar(20)
+  createdAt                                   DateTime?           @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt                                   DateTime?           @map("updated_at") @default(now()) @db.Timestamptz(6)
+  lastLogin                                   DateTime?           @map("last_login") @db.Timestamptz(6)
   challenges                                   challenges[]
   goals                                        goals[]
   leaderboard                                  leaderboard[]

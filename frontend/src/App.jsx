@@ -1,7 +1,7 @@
 //Commented out for ESLINT
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // // Import all pages
@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import GoalsPage from './pages/GoalsPage';
+import GoalDetail from './pages/GoalDetail';
 import ChallengesPage from './pages/ChallengesPage';
 import ProgressPage from './pages/ProgressPage';
 import LeaderboardPage from './pages/LeaderboardPage';
@@ -25,7 +26,7 @@ import Header from './components/common/Header.jsx';
 // import Navbar from './components/layout/Navbar';
 // import Footer from './components/layout/Footer';
 
-function App() {
+function App () {
   return (
     <AuthProvider>
       <Router>
@@ -55,6 +56,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <GoalsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/goals/:id"
+                element={
+                  <ProtectedRoute>
+                    <GoalDetail />
                   </ProtectedRoute>
                 }
               />

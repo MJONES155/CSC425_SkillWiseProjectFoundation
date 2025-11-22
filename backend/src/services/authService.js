@@ -17,7 +17,7 @@ const authService = {
       throw new Error('Invalid password');
     }
 
-    const token = jwt.generateToken({ id: user.id, email: user.email });
+    const accessToken = jwt.generateToken({ id: user.id, email: user.email });
     const refreshToken = jwt.generateRefreshToken({
       id: user.id,
       email: user.email,
@@ -31,7 +31,7 @@ const authService = {
         email: user.email,
         createdAt: user.createdAt,
       },
-      token,
+      accessToken,
       refreshToken,
     };
   },
@@ -39,59 +39,81 @@ const authService = {
   // TODO: Implement user registration
   register: async (userData) => {
     const { firstName, lastName, email, password } = userData;
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+
+    if (!firstName || !lastName || !email || !password) {
+      throw new Error('Missing required registration fields');
+    }
+
+    let existingUser;
+    try {
+      existingUser = await prisma.user.findUnique({ where: { email } });
+    } catch (err) {
+      console.error('🔎 Prisma findUnique error (email check):', {
+        message: err.message,
+        code: err.code,
+        meta: err.meta,
+      });
+      throw err;
+    }
     if (existingUser) {
       throw new Error('Email is already being used for another account');
     }
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    let hashPassword;
+    try {
+      hashPassword = await bcrypt.hash(password, 10);
+    } catch (err) {
+      console.error('🔐 Password hashing failed:', err);
+      throw err;
+    }
 
-    const newUser = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        password: hashPassword,
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        createdAt: true,
-      },
-    });
-    const token = jwt.generateToken({ id: newUser.id, email: newUser.email });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: { firstName, lastName, email, password: hashPassword },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          createdAt: true,
+        },
+      });
+    } catch (err) {
+      console.error('🛠️ Prisma create user error:', {
+        message: err.message,
+        code: err.code,
+        meta: err.meta,
+        stack: err.stack,
+      });
+      throw err;
+    }
+
+    const accessToken = jwt.generateToken({ id: user.id, email: user.email });
     const refreshToken = jwt.generateRefreshToken({
-      id: newUser.id,
-      email: newUser.email,
+      id: user.id,
+      email: user.email,
     });
 
-    return { user: newUser, token, refreshToken };
+    return { user, accessToken, refreshToken };
   },
 
   // TODO: Implement token refresh
   refreshToken: async (refreshToken) => {
     try {
-      // Use the refreshToken value passed in by the controller (from body or cookie)
-      const tokenFromCookie = refreshToken;
-      if (!tokenFromCookie) throw new Error('No refresh token provided');
-
-      const payload = jwt.verifyRefreshToken(tokenFromCookie);
+      const payload = jwt.verifyRefreshToken(refreshToken);
 
       const user = await prisma.user.findUnique({ where: { id: payload.id } });
       if (!user) throw new Error('User not found');
 
-      const token = jwt.generateToken({ id: user.id, email: user.email });
+      const accessToken = jwt.generateToken({ id: user.id, email: user.email });
       const newRefreshToken = jwt.generateRefreshToken({
         id: user.id,
         email: user.email,
       });
 
       //Return Token
-      return { token, refreshToken: newRefreshToken };
+      return { accessToken, refreshToken: newRefreshToken };
     } catch (error) {
       throw new Error('Invalid or expired refresh token');
     }
