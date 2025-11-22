@@ -44,23 +44,50 @@ const authService = {
       throw new Error('Missing required registration fields');
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    let existingUser;
+    try {
+      existingUser = await prisma.user.findUnique({ where: { email } });
+    } catch (err) {
+      console.error('🔎 Prisma findUnique error (email check):', {
+        message: err.message,
+        code: err.code,
+        meta: err.meta,
+      });
+      throw err;
+    }
     if (existingUser) {
       throw new Error('Email is already being used for another account');
     }
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    let hashPassword;
+    try {
+      hashPassword = await bcrypt.hash(password, 10);
+    } catch (err) {
+      console.error('🔐 Password hashing failed:', err);
+      throw err;
+    }
 
-    const user = await prisma.user.create({
-      data: { firstName, lastName, email, password: hashPassword },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        createdAt: true,
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: { firstName, lastName, email, password: hashPassword },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          createdAt: true,
+        },
+      });
+    } catch (err) {
+      console.error('🛠️ Prisma create user error:', {
+        message: err.message,
+        code: err.code,
+        meta: err.meta,
+        stack: err.stack,
+      });
+      throw err;
+    }
 
     const accessToken = jwt.generateToken({ id: user.id, email: user.email });
     const refreshToken = jwt.generateRefreshToken({

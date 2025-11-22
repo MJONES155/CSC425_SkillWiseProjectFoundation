@@ -20,7 +20,7 @@ const authController = {
 
       const { user, accessToken, refreshToken } = await authService.login(
         email,
-        password,
+        password
       );
 
       console.log('✅ Login successful for user:', {
@@ -88,7 +88,36 @@ const authController = {
         data: { user, accessToken, refreshToken },
       });
     } catch (error) {
-      next(error);
+      // Enhanced error logging for CI diagnostics
+      console.error('❌ Registration error (raw):', {
+        message: error.message,
+        name: error.name,
+        code: error.code,
+        stack: error.stack,
+        meta: error.meta,
+      });
+
+      // Map common known errors to appropriate HTTP status codes
+      let statusCode = 500;
+      if (error.message) {
+        if (error.message.includes('already') || error.code === 'P2002') {
+          statusCode = 409; // Unique constraint / duplicate email
+        } else if (
+          error.message.includes('Missing') ||
+          error.message.includes('required') ||
+          error.message.includes('match') ||
+          error.message.includes('Invalid')
+        ) {
+          statusCode = 400; // Validation / bad request
+        }
+      }
+
+      // Provide structured error response instead of generic 500
+      return res.status(statusCode).json({
+        success: false,
+        message: error.message || 'Registration failed',
+        code: error.code || (statusCode === 409 ? 'DUPLICATE' : undefined),
+      });
     }
   },
 
