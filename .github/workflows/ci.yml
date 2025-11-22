@@ -1,0 +1,268 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main, develop, Sprint*]
+  push:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint backend
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Lint frontend
+        working-directory: ./frontend
+        run: npm run lint
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: skillwise_user
+          POSTGRES_PASSWORD: skillwise_pass
+          POSTGRES_DB: skillwise_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://skillwise_user:skillwise_pass@localhost:5432/skillwise_test_db
+      TEST_DATABASE_URL: postgresql://skillwise_user:skillwise_pass@localhost:5432/skillwise_test_db
+      JWT_SECRET: test-jwt-secret-key-for-ci
+      JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run database migrations
+        working-directory: ./backend
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy || echo "Migrations may not be ready"
+
+      - name: Run backend unit tests
+        working-directory: ./backend
+        run: npm test -- --coverage --maxWorkers=2
+
+      - name: Upload backend coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run frontend unit tests
+        working-directory: ./frontend
+        run: npm run test:coverage -- --watchAll=false --maxWorkers=2
+
+      - name: Upload frontend coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+  e2e-tests:
+    name: E2E Tests (Cypress)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: skillwise_user
+          POSTGRES_PASSWORD: skillwise_pass
+          POSTGRES_DB: skillwise_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://skillwise_user:skillwise_pass@localhost:5432/skillwise_db
+      JWT_SECRET: test-jwt-secret-key-for-ci
+      JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+      NODE_ENV: development
+      REACT_APP_API_URL: http://localhost:3001
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Setup database
+        working-directory: ./backend
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy || npx prisma db push
+          npm run seed || echo "Seeding skipped"
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Start backend server
+        working-directory: ./backend
+        run: |
+          npm start &
+          sleep 10
+          curl http://localhost:3001/api/health || echo "Backend may not be ready"
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./frontend
+          start: npm start
+          wait-on: 'http://localhost:3000, http://localhost:3001/api/health'
+          wait-on-timeout: 120
+          browser: chrome
+          record: false
+          config: baseUrl=http://localhost:3000
+
+      - name: Upload Cypress screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: frontend/cypress/screenshots
+
+      - name: Upload Cypress videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-videos
+          path: frontend/cypress/videos
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Check build artifacts
+        run: |
+          ls -la frontend/build
+          echo "Build completed successfully"
+
+  status-check:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, e2e-tests, build]
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [[ "${{ needs.lint.result }}" == "success" ]] && \
+             [[ "${{ needs.unit-tests.result }}" == "success" ]] && \
+             [[ "${{ needs.e2e-tests.result }}" == "success" ]] && \
+             [[ "${{ needs.build.result }}" == "success" ]]; then
+            echo "✅ All CI checks passed!"
+            exit 0
+          else
+            echo "❌ Some CI checks failed"
+            echo "Lint: ${{ needs.lint.result }}"
+            echo "Unit Tests: ${{ needs.unit-tests.result }}"
+            echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+            echo "Build: ${{ needs.build.result }}"
+            exit 1
+          fi
