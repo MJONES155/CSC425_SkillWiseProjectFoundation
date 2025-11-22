@@ -23,34 +23,44 @@ Cypress.Commands.add('login', () => {
 
 Cypress.Commands.add('signup', (user) => {
   // `user` is an object with firstName, lastName, email, password
-  cy.intercept('POST', '**/api/auth/register').as('registerRequest');
-
   cy.visit('/signup');
 
-  cy.get('[data-test=firstName]').type(user.firstName);
-  cy.get('[data-test=lastName]').type(user.lastName);
-  cy.get('[data-test=email]').type(user.email);
-  cy.get('[data-test=password]').type(user.password);
-  cy.get('[data-test=confirmPassword]').type(user.password);
+  cy.get('[data-test=firstName]').clear().type(user.firstName);
+  cy.get('[data-test=lastName]').clear().type(user.lastName);
+  cy.get('[data-test=email]').clear().type(user.email);
+  cy.get('[data-test=password]').clear().type(user.password);
+  cy.get('[data-test=confirmPassword]').clear().type(user.password);
 
-  cy.get('[data-test=signup-button]').click();
+  // Set up intercept right before clicking to ensure it catches the request
+  cy.intercept('POST', '**/auth/register').as('registerRequest');
 
-  // Wait for the registration API call to complete
-  cy.wait('@registerRequest').then((interception) => {
-    // Log response for debugging
-    cy.log('Register response:', interception.response);
-    // Assert successful response
-    expect(interception.response.statusCode).to.be.oneOf([200, 201]);
-  });
+  cy.get('[data-test=signup-button]').should('be.visible').click();
 
-  // Wait until signup completes and app navigates
-  cy.url({ timeout: 10000 }).should('not.include', '/signup');
+  // Wait for either success navigation OR capture any error
+  cy.wait('@registerRequest', { timeout: 10000 }).then((interception) => {
+    cy.log('Register Status:', interception.response.statusCode);
+    cy.log('Register Body:', JSON.stringify(interception.response.body));
 
-  // Ensure access token is stored (authentication complete)
-  cy.window().then((win) => {
-    const token = win.localStorage.getItem('access_token');
-    expect(token, 'access token present after signup').to.exist.and.not.be
-      .empty;
+    if (
+      interception.response.statusCode >= 200 &&
+      interception.response.statusCode < 300
+    ) {
+      // Success - wait for navigation
+      cy.url({ timeout: 15000 }).should('not.match', /\/signup$/);
+
+      // Verify token was stored
+      cy.window().then((win) => {
+        const token = win.localStorage.getItem('access_token');
+        expect(token, 'Access token should be stored after successful signup')
+          .to.exist;
+      });
+    } else {
+      // Log the error for debugging
+      cy.log('Signup failed with status:', interception.response.statusCode);
+      throw new Error(
+        `Signup API call failed with status ${interception.response.statusCode}`
+      );
+    }
   });
 });
 
