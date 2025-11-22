@@ -61,7 +61,7 @@ const progressController = {
       const event = await progressService.trackEvent(
         userId,
         eventType,
-        eventData
+        eventData,
       );
       return created(res, event, 'event_tracked');
     } catch (err) {
@@ -76,7 +76,7 @@ const progressController = {
       const { timeframe } = req.query;
       const analytics = await progressService.generateAnalytics(
         userId,
-        timeframe
+        timeframe,
       );
       return ok(res, analytics, 'analytics');
     } catch (err) {

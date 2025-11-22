@@ -23,9 +23,9 @@ const progressService = {
     const goalsCompleted = goals.filter((g) => g.isCompleted).length;
     const avgProgress = goals.length
       ? Math.round(
-          goals.reduce((sum, g) => sum + (g.progressPercentage || 0), 0) /
-            goals.length
-        )
+        goals.reduce((sum, g) => sum + (g.progressPercentage || 0), 0) /
+            goals.length,
+      )
       : 0;
 
     // Events summary
@@ -51,7 +51,7 @@ const progressService = {
     const datesSet = new Set(
       events
         .filter((e) => e.timestampOccurred)
-        .map((e) => e.timestampOccurred.toISOString().slice(0, 10))
+        .map((e) => e.timestampOccurred.toISOString().slice(0, 10)),
     );
 
     const today = new Date();
@@ -59,7 +59,7 @@ const progressService = {
 
     // Current streak
     let curr = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
     );
     let currentStreak = 0;
     while (datesSet.has(dateKey(curr))) {
@@ -200,24 +200,24 @@ const progressService = {
 
     // Enrich with titles
     const goalIds = Array.from(
-      new Set(events.map((e) => e.relatedGoalId).filter(Boolean))
+      new Set(events.map((e) => e.relatedGoalId).filter(Boolean)),
     );
     const challengeIds = Array.from(
-      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean))
+      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean)),
     );
 
     const [goals, challenges] = await Promise.all([
       goalIds.length
         ? prisma.goals.findMany({
-            where: { id: { in: goalIds } },
-            select: { id: true, title: true },
-          })
+          where: { id: { in: goalIds } },
+          select: { id: true, title: true },
+        })
         : Promise.resolve([]),
       challengeIds.length
         ? prisma.challenges.findMany({
-            where: { id: { in: challengeIds } },
-            select: { id: true, title: true, category: true },
-          })
+          where: { id: { in: challengeIds } },
+          select: { id: true, title: true, category: true },
+        })
         : Promise.resolve([]),
     ]);
 
@@ -258,7 +258,7 @@ const progressService = {
       select: { relatedChallengeId: true },
     });
     const challengeIds = Array.from(
-      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean))
+      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean)),
     );
     if (!challengeIds.length) return [];
     const challenges = await prisma.challenges.findMany({

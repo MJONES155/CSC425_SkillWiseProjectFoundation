@@ -192,7 +192,7 @@ describeIfDb('Authentication Integration', () => {
       expect(response.headers['set-cookie']).toBeDefined();
       const cookies = response.headers['set-cookie'];
       const hasRefreshToken = cookies.some((cookie) =>
-        cookie.includes('refreshToken')
+        cookie.includes('refreshToken'),
       );
       expect(hasRefreshToken).toBe(true);
     });
@@ -269,7 +269,7 @@ describeIfDb('Authentication Integration', () => {
       const cookies = response.headers['set-cookie'] || [];
       const hasExpiredRefreshToken = cookies.some(
         (cookie) =>
-          cookie.includes('refreshToken') && cookie.includes('Expires=')
+          cookie.includes('refreshToken') && cookie.includes('Expires='),
       );
       expect(hasExpiredRefreshToken).toBe(true);
     });
@@ -297,7 +297,7 @@ describeIfDb('Authentication Integration', () => {
       // Extract refresh token from cookie
       const cookies = loginResponse.headers['set-cookie'];
       const refreshCookie = cookies.find((cookie) =>
-        cookie.startsWith('refreshToken=')
+        cookie.startsWith('refreshToken='),
       );
       if (refreshCookie) {
         refreshToken = refreshCookie.split(';')[0].split('=')[1];

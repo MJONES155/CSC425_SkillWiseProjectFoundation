@@ -24,7 +24,7 @@ const challengeController = {
       }
       const challenge = await challengeService.getChallengeById(
         challengeId,
-        userId
+        userId,
       );
       if (!challenge) {
         return res
@@ -46,7 +46,7 @@ const challengeController = {
       const challengeData = req.body;
       const challenge = await challengeService.createChallenge(
         challengeData,
-        userId
+        userId,
       );
 
       console.log('✅ Challenge created successfully:', challenge);
@@ -67,7 +67,7 @@ const challengeController = {
       const updatedChallenge = await challengeService.updateChallenge(
         challengeId,
         userId,
-        req.body
+        req.body,
       );
       if (!updatedChallenge) {
         return res.status(404).json({
@@ -92,7 +92,7 @@ const challengeController = {
       }
       const deletedCount = await challengeService.deleteChallenge(
         challengeId,
-        userId
+        userId,
       );
       if (!deletedCount) {
         return res.status(404).json({
@@ -119,7 +119,7 @@ const challengeController = {
       }
       const updated = await challengeService.completeChallenge(
         challengeId,
-        userId
+        userId,
       );
       res.status(200).json({
         success: true,

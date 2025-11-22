@@ -64,7 +64,7 @@ const goalController = {
       const updatedGoal = await goalService.updateGoal(
         goalId,
         userId,
-        req.body
+        req.body,
       );
       if (!updatedGoal) {
         return res.status(404).json({

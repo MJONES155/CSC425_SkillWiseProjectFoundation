@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 
 // Determine if this is an integration test or unit test
 const isIntegrationTest = process.argv.some((arg) =>
-  arg.includes('integration')
+  arg.includes('integration'),
 );
 
 // Test database configuration

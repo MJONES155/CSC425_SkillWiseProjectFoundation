@@ -27,14 +27,14 @@ const challengeService = {
       const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
       const linkedGoalId = goalTag ? parseInt(goalTag.split(':')[1]) : null;
       const isCompleted = ch.progress_events.some(
-        (ev) => ev.eventType === 'challenge_completed'
+        (ev) => ev.eventType === 'challenge_completed',
       );
       const hasSubmissions = ch.submissions.length > 0;
       const status = isCompleted
         ? 'completed'
         : hasSubmissions
-        ? 'in_progress'
-        : 'todo';
+          ? 'in_progress'
+          : 'todo';
       return {
         id: ch.id,
         title: ch.title,
@@ -68,14 +68,14 @@ const challengeService = {
     const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
     const linkedGoalId = goalTag ? parseInt(goalTag.split(':')[1]) : null;
     const isCompleted = ch.progress_events.some(
-      (ev) => ev.eventType === 'challenge_completed'
+      (ev) => ev.eventType === 'challenge_completed',
     );
     const hasSubmissions = ch.submissions.length > 0;
     const status = isCompleted
       ? 'completed'
       : hasSubmissions
-      ? 'in_progress'
-      : 'todo';
+        ? 'in_progress'
+        : 'todo';
     return {
       id: ch.id,
       title: ch.title,
@@ -140,8 +140,8 @@ const challengeService = {
       if (missing.length) {
         throw new Error(
           `Prerequisite challenge(s) not found or not owned: ${missing.join(
-            ', '
-          )}`
+            ', ',
+          )}`,
         );
       }
       // If linking to a goal, ensure prereqs belong to same goal for coherence
@@ -153,8 +153,8 @@ const challengeService = {
         if (crossGoal.length) {
           throw new Error(
             `Prerequisite challenge(s) must be in the same goal (${goalId}): ${crossGoal.join(
-              ', '
-            )}`
+              ', ',
+            )}`,
           );
         }
       }
@@ -239,7 +239,7 @@ const challengeService = {
         select: { tags: true },
       });
       const otherTags = (existing?.tags || []).filter(
-        (t) => !t.startsWith('goal:')
+        (t) => !t.startsWith('goal:'),
       );
       const updatedTags = newGoalId
         ? [...otherTags, `goal:${newGoalId}`]
@@ -262,8 +262,8 @@ const challengeService = {
         if (missing.length) {
           throw new Error(
             `Prerequisite challenge(s) not found or not owned: ${missing.join(
-              ', '
-            )}`
+              ', ',
+            )}`,
           );
         }
       }
@@ -289,14 +289,14 @@ const challengeService = {
     const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
     const linkedGoalId = goalTag ? parseInt(goalTag.split(':')[1]) : null;
     const isCompleted = ch.progress_events.some(
-      (ev) => ev.eventType === 'challenge_completed'
+      (ev) => ev.eventType === 'challenge_completed',
     );
     const hasSubmissions = ch.submissions.length > 0;
     const status = isCompleted
       ? 'completed'
       : hasSubmissions
-      ? 'in_progress'
-      : 'todo';
+        ? 'in_progress'
+        : 'todo';
     return {
       id: ch.id,
       title: ch.title,
@@ -364,7 +364,7 @@ const challengeService = {
       const missing = prereqIds.filter((id) => !completedSet.has(id));
       if (missing.length) {
         throw new Error(
-          `Complete prerequisite challenge(s) first: ${missing.join(', ')}`
+          `Complete prerequisite challenge(s) first: ${missing.join(', ')}`,
         );
       }
     }
