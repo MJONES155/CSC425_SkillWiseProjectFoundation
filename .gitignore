@@ -84,8 +84,11 @@ web_modules/
 dist
 
 # Gatsby files
+# Ignore only root-level public (Gatsby) but keep frontend/public for React build
 .cache/
-public
+/public
+!frontend/public/
+!frontend/public/index.html
 
 # Vuepress build output
 .vuepress/dist
