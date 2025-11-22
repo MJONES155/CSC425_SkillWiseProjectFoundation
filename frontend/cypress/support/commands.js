@@ -31,6 +31,13 @@ Cypress.Commands.add('signup', (user) => {
   cy.get('[data-test=password]').clear().type(user.password);
   cy.get('[data-test=confirmPassword]').clear().type(user.password);
 
+  // Assert the inputs contain expected values before submitting (guards against React race conditions in CI)
+  cy.get('[data-test=firstName]').should('have.value', user.firstName);
+  cy.get('[data-test=lastName]').should('have.value', user.lastName);
+  cy.get('[data-test=email]').should('have.value', user.email);
+  cy.get('[data-test=password]').should('have.value', user.password);
+  cy.get('[data-test=confirmPassword]').should('have.value', user.password);
+
   // Set up intercept right before clicking to ensure it catches the request
   cy.intercept('POST', '**/api/auth/register').as('registerRequest');
 
@@ -42,6 +49,7 @@ Cypress.Commands.add('signup', (user) => {
   // Wait for either success navigation OR capture any error
   cy.wait('@registerRequest', { timeout: 10000 }).then((interception) => {
     cy.log('Register Request URL:', interception.request.url);
+    cy.log('Register Request Body:', JSON.stringify(interception.request.body));
     cy.log('Register Status:', interception.response.statusCode);
     cy.log('Register Body:', JSON.stringify(interception.response.body));
 
@@ -61,6 +69,10 @@ Cypress.Commands.add('signup', (user) => {
     } else {
       // Log the error for debugging
       cy.log('Signup failed with status:', interception.response.statusCode);
+      cy.log(
+        'Error message:',
+        interception.response.body?.message || 'No message'
+      );
       throw new Error(
         `Signup API call failed with status ${interception.response.statusCode}`
       );
