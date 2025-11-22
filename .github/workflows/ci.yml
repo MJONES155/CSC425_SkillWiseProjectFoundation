@@ -90,7 +90,9 @@ jobs:
         working-directory: ./backend
         run: |
           npx prisma generate
-          npx prisma migrate deploy || echo "Migrations may not be ready"
+          # Run migrate deploy (will be no-op if no migrations folder) then always apply schema
+          npx prisma migrate deploy || echo "No formal migrations present"
+          npx prisma db push
 
       - name: Run backend unit tests
         working-directory: ./backend
@@ -170,7 +172,9 @@ jobs:
         working-directory: ./backend
         run: |
           npx prisma generate
-          npx prisma migrate deploy || npx prisma db push
+          # Apply migrations if present; regardless ensure schema is in place
+          npx prisma migrate deploy || echo "No formal migrations present"
+          npx prisma db push
           npm run seed || echo "Seeding skipped"
 
       - name: Build frontend
