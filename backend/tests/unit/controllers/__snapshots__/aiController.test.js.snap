@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AIController Snapshot Tests generateFeedback should generate feedback for valid submission and match snapshot 1`] = `
+{
+  "attemptNumber": 1,
+  "feedback": "Excellent implementation of the addition function!",
+  "meta": {
+    "confidenceScore": 0.9,
+    "feedbackText": "Excellent implementation of the addition function!",
+    "feedbackType": "general",
+    "id": 1,
+    "improvements": [
+      "Add input validation",
+    ],
+    "strengths": [
+      "Clean code",
+      "Proper return statement",
+    ],
+    "suggestions": [
+      "Consider edge cases",
+    ],
+  },
+  "score": 90,
+  "submissionId": 100,
+}
+`;
+
+exports[`AIController Snapshot Tests generateFeedback should save draft without AI feedback 1`] = `
+{
+  "message": "Draft saved",
+  "status": "draft",
+  "submissionId": 50,
+}
+`;
+
+exports[`AIController Snapshot Tests getHints should handle errors when challenge not found 1`] = `
+{
+  "message": "Challenge not found",
+}
+`;
+
+exports[`AIController Snapshot Tests getHints should return hints for valid challenge ID and match snapshot 1`] = `
+{
+  "data": {
+    "hints": [
+      "Consider the number of comparisons needed",
+      "Think about when to stop the outer loop",
+      "Remember to swap elements when needed",
+    ],
+  },
+  "success": true,
+}
+`;
+
+exports[`AIController Snapshot Tests suggestChallenges should handle AI service errors 1`] = `
+{
+  "error": "AI generation failed",
+  "message": "Failed to generate AI challenge",
+}
+`;
+
+exports[`AIController Snapshot Tests suggestChallenges should suggest challenges based on goal and match snapshot 1`] = `
+{
+  "category": "programming",
+  "description": "Create a basic calculator",
+  "difficulty": "easy",
+  "estimatedTimeMinutes": 30,
+  "instructions": "Implement add, subtract, multiply, divide. Submit .js file.",
+  "maxAttempts": 3,
+  "pointsReward": 50,
+  "title": "Build a Calculator",
+}
+`;

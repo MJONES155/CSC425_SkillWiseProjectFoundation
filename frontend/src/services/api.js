@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as Sentry from '@sentry/react';
 
 // Create axios instance with base configuration
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
@@ -15,7 +16,13 @@ const api = axios.create({
 const TOKEN_KEY = 'access_token';
 
 const getAccessToken = () => {
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch (error) {
+    console.error('Error getting access token from localStorage:', error);
+    Sentry.captureException(error);
+    return null;
+  }
 };
 
 const setAccessToken = (token) => {

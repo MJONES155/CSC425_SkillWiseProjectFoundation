@@ -1,5 +1,5 @@
 // TODO: Implement authentication service unit tests
-const authService = require('../../src/services/authService');
+const authService = require('../../../src/services/authService');
 
 describe('AuthService', () => {
   describe('login', () => {

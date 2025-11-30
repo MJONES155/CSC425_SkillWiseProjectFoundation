@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import * as Sentry from '@sentry/react';
 import LoginForm from '../components/auth/LoginForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import '../styles/LoginPage.css';
@@ -30,9 +31,11 @@ const LoginPage = () => {
         navigate(from, { replace: true });
       } else {
         setError(result.error || 'Login failed. Please try again.');
+        Sentry.captureException(new Error(result.error || 'Login failed'));
       }
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
+      Sentry.captureException(err);
     } finally {
       setIsLoading(false);
     }

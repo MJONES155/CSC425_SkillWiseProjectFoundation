@@ -1,6 +1,6 @@
 // TODO: Implement challenges CRUD operations controller
 const challengeService = require('../services/challengeService');
-const { AppError } = require('../middleware/errorHandler');
+const Sentry = require('@sentry/node');
 
 const challengeController = {
   // TODO: Get all challenges
@@ -10,6 +10,7 @@ const challengeController = {
       const challenges = await challengeService.getUserChallenges(userId);
       res.status(200).json({ success: true, data: challenges });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -24,7 +25,7 @@ const challengeController = {
       }
       const challenge = await challengeService.getChallengeById(
         challengeId,
-        userId,
+        userId
       );
       if (!challenge) {
         return res
@@ -34,6 +35,7 @@ const challengeController = {
         res.status(200).json({ success: true, data: challenge });
       }
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -46,12 +48,13 @@ const challengeController = {
       const challengeData = req.body;
       const challenge = await challengeService.createChallenge(
         challengeData,
-        userId,
+        userId
       );
 
       console.log('✅ Challenge created successfully:', challenge);
       res.status(201).json({ success: true, data: challenge });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -67,7 +70,7 @@ const challengeController = {
       const updatedChallenge = await challengeService.updateChallenge(
         challengeId,
         userId,
-        req.body,
+        req.body
       );
       if (!updatedChallenge) {
         return res.status(404).json({
@@ -78,6 +81,7 @@ const challengeController = {
         res.status(200).json({ success: true, data: updatedChallenge });
       }
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -92,7 +96,7 @@ const challengeController = {
       }
       const deletedCount = await challengeService.deleteChallenge(
         challengeId,
-        userId,
+        userId
       );
       if (!deletedCount) {
         return res.status(404).json({
@@ -105,6 +109,7 @@ const challengeController = {
           .json({ success: true, message: 'Challenge deleted successfully' });
       }
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -119,7 +124,7 @@ const challengeController = {
       }
       const updated = await challengeService.completeChallenge(
         challengeId,
-        userId,
+        userId
       );
       res.status(200).json({
         success: true,
@@ -127,6 +132,7 @@ const challengeController = {
         message: 'Challenge marked as completed',
       });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },

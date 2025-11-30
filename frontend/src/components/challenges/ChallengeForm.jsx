@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../../services/api';
 import './ChallengeForm.css';
+import * as Sentry from '@sentry/react';
 
-const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoalId = null }) => {
+const ChallengeForm = ({
+  onSubmit,
+  onClose,
+  initialChallenge = null,
+  initialGoalId = null,
+}) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -61,6 +67,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoal
         setAllChallenges(challengesRes.data?.data ?? challengesRes.data ?? []);
       } catch (e) {
         console.warn('Failed to load selectable goals/challenges');
+        Sentry.captureException(e);
       }
     };
     load();
@@ -78,13 +85,13 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoal
       let newPrereqs = formData.prerequisites;
       if (newGoalId && Array.isArray(newPrereqs) && newPrereqs.length) {
         const allowedIds = new Set(
-          allChallenges.filter((c) => c.goalId === newGoalId).map((c) => c.id),
+          allChallenges.filter((c) => c.goalId === newGoalId).map((c) => c.id)
         );
         const removed = newPrereqs.filter((id) => !allowedIds.has(id));
         newPrereqs = newPrereqs.filter((id) => allowedIds.has(id));
         if (removed.length) {
           setPrereqWarning(
-            `Removed ${removed.length} prerequisite(s) not linked to the selected goal.`,
+            `Removed ${removed.length} prerequisite(s) not linked to the selected goal.`
           );
           setTimeout(() => setPrereqWarning(''), 4000);
         }
@@ -122,28 +129,33 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoal
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const payload = {
-      ...formData,
-      goalId: formData.goalId ? parseInt(formData.goalId, 10) : undefined,
-      prerequisites: Array.isArray(formData.prerequisites)
-        ? formData.prerequisites
-        : [],
-    };
-    // Front-end guard: if goal selected, ensure all prereqs belong to same goal
-    if (payload.goalId) {
-      const mismatched = payload.prerequisites.filter((id) => {
-        const ch = allChallenges.find((c) => c.id === id);
-        return ch && ch.goalId !== payload.goalId;
-      });
-      if (mismatched.length) {
-        setPrereqWarning(
-          'Some prerequisites belong to a different goal. Please fix and try again.',
-        );
-        return;
+    try {
+      e.preventDefault();
+      const payload = {
+        ...formData,
+        goalId: formData.goalId ? parseInt(formData.goalId, 10) : undefined,
+        prerequisites: Array.isArray(formData.prerequisites)
+          ? formData.prerequisites
+          : [],
+      };
+      // Front-end guard: if goal selected, ensure all prereqs belong to same goal
+      if (payload.goalId) {
+        const mismatched = payload.prerequisites.filter((id) => {
+          const ch = allChallenges.find((c) => c.id === id);
+          return ch && ch.goalId !== payload.goalId;
+        });
+        if (mismatched.length) {
+          setPrereqWarning(
+            'Some prerequisites belong to a different goal. Please fix and try again.'
+          );
+          return;
+        }
       }
+      onSubmit(payload);
+    } catch (e) {
+      console.error('Challenge form submission error:', e);
+      Sentry.captureException(e);
     }
-    onSubmit(payload);
   };
 
   return (
@@ -300,7 +312,7 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoal
               <div className="prerequisite-tags">
                 {formData.prerequisites.map((prereqId) => {
                   const challenge = allChallenges.find(
-                    (c) => c.id === prereqId,
+                    (c) => c.id === prereqId
                   );
                   return (
                     <div key={prereqId} className="prerequisite-tag">
@@ -330,12 +342,12 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoal
               <option value="">+ Add prerequisite challenge</option>
               {(formData.goalId
                 ? allChallenges.filter(
-                  (c) => c.goalId === parseInt(formData.goalId, 10),
-                )
+                    (c) => c.goalId === parseInt(formData.goalId, 10)
+                  )
                 : allChallenges
               )
                 .filter(
-                  (c) => !initialChallenge || c.id !== initialChallenge.id,
+                  (c) => !initialChallenge || c.id !== initialChallenge.id
                 )
                 .filter((c) => !formData.prerequisites.includes(c.id))
                 .map((c) => (
@@ -346,7 +358,11 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoal
                 ))}
             </select>
             {prereqWarning && (
-              <div className="warning-text" role="alert" data-test="prereq-warning">
+              <div
+                className="warning-text"
+                role="alert"
+                data-test="prereq-warning"
+              >
                 {prereqWarning}
               </div>
             )}
@@ -357,10 +373,19 @@ const ChallengeForm = ({ onSubmit, onClose, initialChallenge = null, initialGoal
           </div>
 
           <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-secondary" data-test="challenge-cancel">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary"
+              data-test="challenge-cancel"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary" data-test="challenge-submit">
+            <button
+              type="submit"
+              className="btn-primary"
+              data-test="challenge-submit"
+            >
               {initialChallenge ? 'Update Challenge' : 'Create Challenge'}
             </button>
           </div>

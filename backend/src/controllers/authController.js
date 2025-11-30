@@ -1,8 +1,8 @@
 // TODO: Implement authentication controller with login, register, logout, refresh token endpoints
 const authService = require('../services/authService');
 const bcrypt = require('bcryptjs');
-const { AppError } = require('../middleware/errorHandler');
 const jwt = require('jsonwebtoken');
+const Sentry = require('@sentry/node');
 
 const authController = {
   // TODO: Add login endpoint
@@ -20,7 +20,7 @@ const authController = {
 
       const { user, accessToken, refreshToken } = await authService.login(
         email,
-        password,
+        password
       );
 
       console.log('✅ Login successful for user:', {
@@ -42,6 +42,7 @@ const authController = {
       });
     } catch (error) {
       console.error('❌ Login error:', error);
+      Sentry.captureException(error);
       return res.status(401).json({
         success: false,
         message: error.message || 'Invalid credentials',
@@ -88,6 +89,7 @@ const authController = {
         data: { user, accessToken, refreshToken },
       });
     } catch (error) {
+      Sentry.captureException(error);
       // Enhanced error logging for CI diagnostics
       console.error('❌ Registration error (raw):', {
         message: error.message,
@@ -129,6 +131,7 @@ const authController = {
         .status(200)
         .json({ success: true, message: 'Logged out successfully' });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -159,6 +162,7 @@ const authController = {
         data: { accessToken, newRefreshToken },
       });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },

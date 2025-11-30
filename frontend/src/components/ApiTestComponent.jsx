@@ -1,5 +1,6 @@
 import React from 'react';
 import { apiService } from '../services/api';
+import * as Sentry from '@sentry/react';
 
 // Simple test component to verify API client functionality
 // This can be removed once real components are using the API
@@ -15,8 +16,9 @@ const ApiTestComponent = () => {
     } catch (error) {
       console.log(
         'API test failed (expected for unauthenticated requests):',
-        error.message,
+        error.message
       );
+      Sentry.captureException(error);
     }
   };
 
@@ -28,8 +30,9 @@ const ApiTestComponent = () => {
     } catch (error) {
       console.log(
         'Profile fetch failed (expected without token):',
-        error.message,
+        error.message
       );
+      Sentry.captureException(error);
     }
   };
 

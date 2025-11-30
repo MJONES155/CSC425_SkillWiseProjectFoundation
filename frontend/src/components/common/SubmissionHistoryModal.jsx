@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { apiService } from '../../services/api';
+import * as Sentry from '@sentry/react';
 
 export default function SubmissionHistoryModal({ open, onClose, challenge }) {
   const [submissions, setSubmissions] = useState([]);
@@ -38,6 +39,7 @@ export default function SubmissionHistoryModal({ open, onClose, challenge }) {
     } catch (err) {
       console.error('Failed to fetch submissions:', err);
       setSubmissions([]);
+      Sentry.captureException(err);
     } finally {
       setLoading(false);
     }

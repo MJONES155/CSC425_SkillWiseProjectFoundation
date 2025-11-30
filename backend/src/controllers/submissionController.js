@@ -1,6 +1,7 @@
 // TODO: Implement work submission controller
 const submissionService = require('../services/submissionService');
 const aiController = require('../controllers/aiController'); // allow chaining
+const Sentry = require('@sentry/node');
 
 const submissionController = {
   // TODO: Submit work for challenge
@@ -22,6 +23,7 @@ const submissionController = {
 
       return aiController.generateFeedback(req, res);
     } catch (err) {
+      Sentry.captureException(err);
       console.error(err);
       res
         .status(500)
@@ -38,6 +40,7 @@ const submissionController = {
       );
       res.status(200).json({ success: true, data: submission });
     } catch (err) {
+      Sentry.captureException(err);
       console.error(err);
       res
         .status(500)
@@ -52,13 +55,12 @@ const submissionController = {
       const submissions = await submissionService.getUserSubmissions(userId);
       res.status(200).json({ success: true, data: submissions });
     } catch (err) {
+      Sentry.captureException(err);
       console.error(err);
-      res
-        .status(500)
-        .json({
-          message: 'Failed to get user submissions',
-          error: err.message,
-        });
+      res.status(500).json({
+        message: 'Failed to get user submissions',
+        error: err.message,
+      });
     }
   },
 
@@ -73,13 +75,12 @@ const submissionController = {
       );
       res.status(200).json({ success: true, data: submissions });
     } catch (err) {
+      Sentry.captureException(err);
       console.error(err);
-      res
-        .status(500)
-        .json({
-          message: 'Failed to get challenge submissions',
-          error: err.message,
-        });
+      res.status(500).json({
+        message: 'Failed to get challenge submissions',
+        error: err.message,
+      });
     }
   },
 
@@ -94,6 +95,7 @@ const submissionController = {
       );
       res.status(200).json({ success: true, data: updated });
     } catch (err) {
+      Sentry.captureException(err);
       console.error(err);
       res
         .status(500)

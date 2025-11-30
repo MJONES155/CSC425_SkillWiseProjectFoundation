@@ -8,6 +8,7 @@ import AIFeedbackForm from '../components/common/aiFeedbackForm';
 import SubmissionHistoryModal from '../components/common/SubmissionHistoryModal';
 import Dialog from '@mui/material/Dialog';
 import { apiService } from '../services/api';
+import * as Sentry from '@sentry/react';
 
 const ChallengesPage = () => {
   const [challenges, setChallenges] = useState([]);
@@ -41,6 +42,7 @@ const ChallengesPage = () => {
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to load challenges.');
       console.error('Error loading challenges:', e);
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -53,6 +55,7 @@ const ChallengesPage = () => {
       setGoals(goalsData);
     } catch (e) {
       console.error('Error loading goals:', e);
+      Sentry.captureException(e);
     }
   };
 
@@ -123,6 +126,7 @@ const ChallengesPage = () => {
       } catch (e) {
         setError(e.response?.data?.message || 'Failed to delete challenge.');
         console.error('Error deleting challenge:', e);
+        Sentry.captureException(e);
       }
     }
   };
@@ -135,6 +139,7 @@ const ChallengesPage = () => {
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to complete challenge.');
       console.error('Error completing challenge:', e);
+      Sentry.captureException(e);
     }
   };
 
@@ -152,6 +157,7 @@ const ChallengesPage = () => {
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to save challenge.');
       console.error('Error saving challenge:', e);
+      Sentry.captureException(e);
     }
   };
 
@@ -172,6 +178,7 @@ const ChallengesPage = () => {
     } catch (e) {
       console.error('AI challenge generation error:', e);
       setError(e.response?.data?.message || 'Failed to generate AI challenge.');
+      Sentry.captureException(e);
     } finally {
       setAiLoading(false);
     }
@@ -203,6 +210,7 @@ const ChallengesPage = () => {
     } catch (e) {
       console.error('Failed to save AI challenge:', e);
       setError(e.response?.data?.message || 'Failed to save challenge.');
+      Sentry.captureException(e);
     }
   };
 

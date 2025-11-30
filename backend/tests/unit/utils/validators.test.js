@@ -1,5 +1,5 @@
 // TODO: Implement validators utility unit tests
-const validators = require('../../src/utils/validators');
+const validators = require('../../../src/utils/validators');
 
 describe('Validators', () => {
   describe('validateEmail', () => {

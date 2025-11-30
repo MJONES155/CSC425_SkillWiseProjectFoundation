@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 // Removed zip file support; only single .js files are processed.
 const prisma = new PrismaClient();
+const Sentry = require('@sentry/node');
 
 const aiController = {
   // TODO: Generate AI feedback for submission
@@ -39,12 +40,10 @@ const aiController = {
             const ext = path.extname(file.originalname).toLowerCase();
             if (ext === '.zip') {
               // Reject zip uploads explicitly now.
-              return res
-                .status(400)
-                .json({
-                  message:
-                    'ZIP uploads are no longer supported. Please submit a single .js file or paste code.',
-                });
+              return res.status(400).json({
+                message:
+                  'ZIP uploads are no longer supported. Please submit a single .js file or paste code.',
+              });
             } else if (allowedExt.has(ext)) {
               const fileData = fs.readFileSync(file.path, 'utf8');
               aggregated +=
@@ -54,22 +53,19 @@ const aiController = {
           content = aggregated.trim();
         } catch (aggErr) {
           console.error('File aggregation failed:', aggErr);
-          return res
-            .status(400)
-            .json({
-              message: 'Failed to process uploaded files',
-              error: aggErr.message,
-            });
+          Sentry.captureException(aggErr);
+          return res.status(400).json({
+            message: 'Failed to process uploaded files',
+            error: aggErr.message,
+          });
         }
       }
 
       if (!challengeId || !content) {
-        return res
-          .status(400)
-          .json({
-            message:
-              'challengeId and content are required (provide text or supported files)',
-          });
+        return res.status(400).json({
+          message:
+            'challengeId and content are required (provide text or supported files)',
+        });
       }
 
       // Handle draft save without consuming attempts or invoking AI
@@ -92,6 +88,8 @@ const aiController = {
             createdAt: draftSubmission.createdAt,
           });
         } catch (e) {
+          console.error('Failed to save draft:', e);
+          Sentry.captureException(e);
           return res
             .status(500)
             .json({ message: 'Failed to save draft', error: e.message });
@@ -317,6 +315,7 @@ const aiController = {
               }
             } catch (cleanupErr) {
               console.error('Cleanup failed:', cleanupErr);
+              Sentry.captureException(cleanupErr);
             }
 
             return res.status(500).json({
@@ -393,6 +392,7 @@ const aiController = {
               'Failed to create progress event:',
               progressErr.message
             );
+            Sentry.captureException(progressErr);
           }
         }
 
@@ -467,6 +467,9 @@ const aiController = {
       }
     } catch (err) {
       console.error('AI feedback failed:', err);
+      Sentry.captureException(err);
+
+      // Rollback created submission if applicable
 
       if (createdSubmissionId) {
         try {
@@ -476,6 +479,7 @@ const aiController = {
           console.log(`Rolled back submission ${createdSubmissionId}`);
         } catch (deleteErr) {
           console.error('Rollback failed:', deleteErr);
+          Sentry.captureException(deleteErr);
         }
       }
 
@@ -530,6 +534,7 @@ const aiController = {
       return res.status(200).json(hints);
     } catch (err) {
       console.error('Get hints failed:', err);
+      Sentry.captureException(err);
       return res
         .status(500)
         .json({ message: 'Failed to generate hints', error: err.message });
@@ -547,6 +552,7 @@ const aiController = {
       return res.status(200).json(challenge);
     } catch (err) {
       console.error('AI Suggest Challenge Error:', err);
+      Sentry.captureException(err);
       return res.status(500).json({
         message: 'Failed to generate AI challenge',
         error: err.message,

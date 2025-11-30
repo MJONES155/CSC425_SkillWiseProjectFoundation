@@ -13,6 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { apiService } from '../../services/api';
 import ChallengeCard from '../challenges/ChallengeCard';
 import ChallengeForm from '../challenges/ChallengeForm';
+import * as Sentry from '@sentry/react';
 
 const GoalCard = ({
   goal,
@@ -39,6 +40,7 @@ const GoalCard = ({
         setChallenges(response.data?.data ?? response.data ?? []);
       } catch (error) {
         console.error('Failed to load challenges:', error);
+        Sentry.captureException(error);
       } finally {
         setLoadingChallenges(false);
       }
@@ -78,13 +80,16 @@ const GoalCard = ({
       setShowChallengeForm(false);
       // Reload challenges list under this goal
       if (goal?.id) {
-        const response = await apiService.challenges.getAll({ goalId: goal.id });
+        const response = await apiService.challenges.getAll({
+          goalId: goal.id,
+        });
         setChallenges(response.data?.data ?? response.data ?? []);
         // Expand to show the newly created challenge
         if (!expanded) setExpanded(true);
       }
     } catch (e) {
       console.error('Failed to create challenge:', e);
+      Sentry.captureException(e);
     }
   };
 

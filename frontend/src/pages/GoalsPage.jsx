@@ -5,6 +5,7 @@ import GoalCard from '../components/goals/GoalCard';
 import GoalForm from '../components/goals/GoalForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { apiService } from '../services/api';
+import * as Sentry from '@sentry/react';
 
 const GoalsPage = () => {
   const [goals, setGoals] = useState([]);
@@ -28,6 +29,7 @@ const GoalsPage = () => {
       setGoals(res.data?.data ?? res.data ?? []);
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to load goals');
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -75,6 +77,7 @@ const GoalsPage = () => {
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to save goal');
       setSuccessMessage('Goal not created');
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -96,6 +99,7 @@ const GoalsPage = () => {
       await loadGoals();
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to mark goal complete');
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -110,6 +114,7 @@ const GoalsPage = () => {
       await loadGoals();
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to pause goal');
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -123,6 +128,7 @@ const GoalsPage = () => {
       await loadGoals();
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to delete goal');
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -136,6 +142,7 @@ const GoalsPage = () => {
       await loadGoals();
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to complete challenge');
+      Sentry.captureException(e);
     }
   };
 

@@ -1,6 +1,6 @@
 // TODO: Implement goals CRUD operations controller
 const goalService = require('../services/goalService');
-const { AppError } = require('../middleware/errorHandler');
+const Sentry = require('@sentry/node');
 
 const goalController = {
   // TODO: Get all goals for user
@@ -10,6 +10,7 @@ const goalController = {
       const goals = await goalService.getUserGoals(userId);
       res.status(200).json({ success: true, data: goals });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -31,6 +32,7 @@ const goalController = {
         res.status(200).json({ success: true, data: goal });
       }
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -49,6 +51,7 @@ const goalController = {
         data: goal,
       });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -64,7 +67,7 @@ const goalController = {
       const updatedGoal = await goalService.updateGoal(
         goalId,
         userId,
-        req.body,
+        req.body
       );
       if (!updatedGoal) {
         return res.status(404).json({
@@ -75,6 +78,7 @@ const goalController = {
         res.status(200).json({ success: true, data: updatedGoal });
       }
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -99,6 +103,7 @@ const goalController = {
           .json({ success: true, message: 'Goal deleted successfully' });
       }
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },

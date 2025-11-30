@@ -1,5 +1,6 @@
 // TODO: Implement login form component
 import React, { useState } from 'react';
+import * as Sentry from '@sentry/react';
 
 const LoginForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -9,10 +10,14 @@ const LoginForm = ({ onSubmit }) => {
 
   // TODO: Add form validation, error handling, loading state
   const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: Implement login logic
-    if (onSubmit) {
-      onSubmit(formData); // pass the email and password up to LoginPage
+    try {
+      e.preventDefault();
+      if (onSubmit) {
+        onSubmit(formData); // pass the email and password up to LoginPage
+      }
+    } catch (error) {
+      console.error('Login form submission error:', error);
+      Sentry.captureException(error);
     }
   };
 

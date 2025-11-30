@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as Sentry from '@sentry/react';
 
 const SignupForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -12,21 +13,27 @@ const SignupForm = ({ onSubmit }) => {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
 
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+      // Basic validation
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return;
-    }
+      if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters long');
+        return;
+      }
 
-    if (onSubmit) {
-      await onSubmit(formData);
+      if (onSubmit) {
+        await onSubmit(formData);
+      }
+    } catch (err) {
+      console.error('Signup form submission error:', err);
+      setError(err.message || 'An error occurred during registration.');
+      Sentry.captureException(err);
     }
   };
 

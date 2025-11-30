@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import SignupForm from '../components/auth/SignupForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import * as Sentry from '@sentry/react';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -36,9 +37,13 @@ const SignupPage = () => {
         navigate('/dashboard');
       } else {
         setError(result.error || 'Registration failed. Please try again.');
+        Sentry.captureException(
+          new Error(result.error || 'Registration failed')
+        );
       }
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
+      Sentry.captureException(err);
     } finally {
       setIsLoading(false);
     }

@@ -9,6 +9,7 @@ import {
   Divider,
 } from '@mui/material';
 import { apiService } from '../../services/api';
+import * as Sentry from '@sentry/react';
 
 export default function AIFeedbackForm({ challenge, onClose, onSuccess }) {
   const [content, setContent] = useState('');
@@ -41,6 +42,7 @@ export default function AIFeedbackForm({ challenge, onClose, onSuccess }) {
       setSubmissionCount(count);
     } catch (err) {
       console.error('Failed to fetch submission count:', err);
+      Sentry.captureException(err);
     }
   };
 
@@ -56,6 +58,7 @@ export default function AIFeedbackForm({ challenge, onClose, onSuccess }) {
       setDrafts(draftList);
     } catch (err) {
       console.error('Failed to fetch drafts:', err);
+      Sentry.captureException(err);
     }
   };
 
@@ -121,6 +124,7 @@ export default function AIFeedbackForm({ challenge, onClose, onSuccess }) {
           });
         } catch (cbErr) {
           console.warn('onSuccess callback failed:', cbErr);
+          Sentry.captureException(cbErr);
         }
       }
 
@@ -236,6 +240,7 @@ export default function AIFeedbackForm({ challenge, onClose, onSuccess }) {
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Error saving draft.';
       setFeedback(`Error: ${errorMsg}`);
+      Sentry.captureException(err);
     } finally {
       setLoading(false);
     }
