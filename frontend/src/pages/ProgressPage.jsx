@@ -66,6 +66,18 @@ const ProgressPage = () => {
     loadAll();
   }, [timeframe]);
 
+  useEffect(() => {
+    // Listen for goal progress updates from other pages
+    const handleProgressUpdate = () => {
+      loadAll();
+    };
+    window.addEventListener('goal:progress-updated', handleProgressUpdate);
+
+    return () => {
+      window.removeEventListener('goal:progress-updated', handleProgressUpdate);
+    };
+  }, []);
+
   if (loading) return <LoadingSpinner message="Loading your progress..." />;
   if (error) return <Typography color="error">{error}</Typography>;
 
@@ -78,10 +90,14 @@ const ProgressPage = () => {
     }))
     .slice(-7);
 
-  const totalGoals = overview?.goals?.length ?? 0;
+  const totalGoals =
+    overview?.totals?.totalGoals ?? overview?.goals?.length ?? 0;
   const completedGoals = overview?.totals?.completedGoals ?? 0;
-  const overallProgressPercentage =
-    totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+  const totalChallenges = overview?.totals?.totalChallenges ?? 0;
+  const completedChallenges = overview?.totals?.completedChallenges ?? 0;
+
+  // Use backend's calculated overall progress (blends challenges and goals)
+  const overallProgressPercentage = overview?.overallProgressPercentage ?? 0;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -118,7 +134,9 @@ const ProgressPage = () => {
         />
 
         <Typography align="center" color="text.secondary">
-          {completedGoals} of {totalGoals} goals completed
+          {completedChallenges} of {totalChallenges} challenges completed
+          {totalGoals > 0 &&
+            ` • ${completedGoals} of ${totalGoals} goals completed`}
         </Typography>
       </Card>
 
@@ -236,8 +254,8 @@ const ProgressPage = () => {
                     {ev.type === 'challenge_completed'
                       ? '🚀'
                       : ev.type?.includes('goal')
-                        ? '🎯'
-                        : '🧭'}
+                      ? '🎯'
+                      : '🧭'}
                   </Typography>
 
                   <Typography variant="subtitle1" fontWeight={600}>

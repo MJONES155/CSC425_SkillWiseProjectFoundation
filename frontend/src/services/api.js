@@ -5,7 +5,7 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // Include cookies for httpOnly refresh token
-  timeout: 10000, // 10 second timeout
+  timeout: 15000, // 15 second timeout
   headers: {
     'Content-Type': 'application/json',
   },
@@ -53,7 +53,7 @@ api.interceptors.request.use(
     // Don't add auth header to login/register/refresh endpoints
     const publicEndpoints = ['/auth/login', '/auth/register', '/auth/refresh'];
     const isPublicEndpoint = publicEndpoints.some((endpoint) =>
-      config.url?.includes(endpoint),
+      config.url?.includes(endpoint)
     );
 
     if (!isPublicEndpoint) {
@@ -66,7 +66,7 @@ api.interceptors.request.use(
     // Log request in development
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        `🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+        `🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`
       );
     }
 
@@ -75,7 +75,7 @@ api.interceptors.request.use(
   (error) => {
     console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
-  },
+  }
 );
 
 // Response interceptor for token refresh logic
@@ -86,7 +86,7 @@ api.interceptors.response.use(
       console.log(
         `✅ API Response: ${response.config.method?.toUpperCase()} ${
           response.config.url
-        } - ${response.status}`,
+        } - ${response.status}`
       );
     }
 
@@ -100,7 +100,7 @@ api.interceptors.response.use(
       console.log(
         `❌ API Error: ${originalRequest?.method?.toUpperCase()} ${
           originalRequest?.url
-        } - ${error.response?.status}`,
+        } - ${error.response?.status}`
       );
     }
 
@@ -109,7 +109,7 @@ api.interceptors.response.use(
       // Don't attempt refresh for auth endpoints (login, register, refresh)
       const authEndpoints = ['/auth/login', '/auth/register', '/auth/refresh'];
       const isAuthEndpoint = authEndpoints.some((endpoint) =>
-        originalRequest?.url?.includes(endpoint),
+        originalRequest?.url?.includes(endpoint)
       );
 
       if (isAuthEndpoint) {
@@ -142,7 +142,7 @@ api.interceptors.response.use(
           {
             withCredentials: true, // Send httpOnly refresh cookie
             timeout: 5000,
-          },
+          }
         );
 
         // Backend responds as { success, message, data: { accessToken, newRefreshToken } }
@@ -179,7 +179,7 @@ api.interceptors.response.use(
         window.dispatchEvent(
           new CustomEvent('auth:logout', {
             detail: { reason: 'token_refresh_failed' },
-          }),
+          })
         );
 
         // Redirect to login page
@@ -193,6 +193,33 @@ api.interceptors.response.use(
       }
     }
 
+    // Handle rate limiting (429 Too Many Requests)
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.data?.retryAfter || 60;
+      console.warn(`⏱️ Rate limit hit. Retry after ${retryAfter}s`);
+
+      // Provide user-friendly error message
+      error.message =
+        "Please slow down - you're making too many requests. The app will automatically retry in a moment.";
+
+      // Dispatch event for UI to show notification
+      window.dispatchEvent(
+        new CustomEvent('api:rate-limit', {
+          detail: { retryAfter, originalRequest },
+        })
+      );
+
+      // Auto-retry after a short delay (shorter than server's retry-after for better UX)
+      if (!originalRequest._rateLimitRetry) {
+        originalRequest._rateLimitRetry = true;
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(api(originalRequest));
+          }, Math.min(retryAfter * 1000, 3000)); // Max 3 second wait
+        });
+      }
+    }
+
     // Handle other error cases
     if (error.response?.status >= 500) {
       console.error('🚨 Server Error:', error.response.data);
@@ -200,7 +227,7 @@ api.interceptors.response.use(
       window.dispatchEvent(
         new CustomEvent('api:server-error', {
           detail: { error: error.response.data },
-        }),
+        })
       );
     }
 
@@ -216,7 +243,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 // API service methods
@@ -314,6 +341,35 @@ export const apiService = {
     getAll: () => api.get('/notifications'),
     markAsRead: (id) => api.put(`/notifications/${id}/read`),
     markAllAsRead: () => api.put('/notifications/read-all'),
+  },
+
+  ai: {
+    getSuggestions: (params) => api.get('/ai/suggestions', { params }),
+    feedback: (payload) => {
+      if (payload instanceof FormData) {
+        return api.post('/ai/feedback', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+      return api.post('/ai/feedback', payload);
+    },
+    // Longer-timeout feedback call to avoid premature client-side timeouts
+    feedbackLong: (payload, timeoutMs = 60000) => {
+      if (payload instanceof FormData) {
+        return api.post('/ai/feedback', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: timeoutMs,
+        });
+      }
+      return api.post('/ai/feedback', payload, { timeout: timeoutMs });
+    },
+    getHints: (challengeId) => api.get(`/ai/hints/${challengeId}`),
+  },
+
+  // Submission methods
+  submissions: {
+    getChallengeSubmissions: (challengeId) =>
+      api.get(`/submissions/challenge/${challengeId}`),
   },
 };
 

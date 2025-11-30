@@ -1,8 +1,9 @@
 //Commented out for ESLINT
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
+import { Snackbar, Alert } from '@mui/material';
 
 // // Import all pages
 import HomePage from './pages/HomePage';
@@ -26,13 +27,58 @@ import Header from './components/common/Header.jsx';
 // import Navbar from './components/layout/Navbar';
 // import Footer from './components/layout/Footer';
 
-function App () {
+function App() {
+  const [rateLimitNotification, setRateLimitNotification] = useState({
+    open: false,
+    message: '',
+  });
+
+  useEffect(() => {
+    // Listen for rate limit events from API interceptor
+    const handleRateLimit = (event) => {
+      const retryAfter = event.detail?.retryAfter || 60;
+      setRateLimitNotification({
+        open: true,
+        message: `Slow down! Too many requests. Automatically retrying in ${Math.min(
+          retryAfter,
+          3
+        )} seconds...`,
+      });
+    };
+
+    window.addEventListener('api:rate-limit', handleRateLimit);
+
+    return () => {
+      window.removeEventListener('api:rate-limit', handleRateLimit);
+    };
+  }, []);
+
+  const handleCloseNotification = () => {
+    setRateLimitNotification({ open: false, message: '' });
+  };
+
   return (
     <AuthProvider>
       <Router>
         <div className="App">
           {/* TODO: Add Navbar component */}
           <Header />
+
+          {/* Rate Limit Notification */}
+          <Snackbar
+            open={rateLimitNotification.open}
+            autoHideDuration={4000}
+            onClose={handleCloseNotification}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert
+              onClose={handleCloseNotification}
+              severity="warning"
+              sx={{ width: '100%' }}
+            >
+              {rateLimitNotification.message}
+            </Alert>
+          </Snackbar>
 
           <main className="main-content">
             <Routes>

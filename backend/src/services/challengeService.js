@@ -18,7 +18,10 @@ const challengeService = {
       where,
       include: {
         progress_events: { select: { eventType: true, relatedGoalId: true } },
-        submissions: { select: { id: true } },
+        submissions: {
+          where: { userId: parseInt(userId) },
+          select: { id: true, score: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -27,14 +30,21 @@ const challengeService = {
       const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
       const linkedGoalId = goalTag ? parseInt(goalTag.split(':')[1]) : null;
       const isCompleted = ch.progress_events.some(
-        (ev) => ev.eventType === 'challenge_completed',
+        (ev) => ev.eventType === 'challenge_completed'
       );
       const hasSubmissions = ch.submissions.length > 0;
+      const scoredSubmissions = ch.submissions.filter(
+        (s) => typeof s.score === 'number'
+      );
+      const highestScore =
+        scoredSubmissions.length > 0
+          ? Math.max(...scoredSubmissions.map((s) => s.score))
+          : null;
       const status = isCompleted
         ? 'completed'
         : hasSubmissions
-          ? 'in_progress'
-          : 'todo';
+        ? 'in_progress'
+        : 'todo';
       return {
         id: ch.id,
         title: ch.title,
@@ -50,6 +60,7 @@ const challengeService = {
         updatedAt: ch.updatedAt,
         goalId: linkedGoalId,
         status,
+        highestScore,
         prerequisites: ch.prerequisites || [],
       };
     });
@@ -61,21 +72,31 @@ const challengeService = {
       where: { id: parseInt(challengeId), createdBy: parseInt(userId) },
       include: {
         progress_events: { select: { eventType: true, relatedGoalId: true } },
-        submissions: { select: { id: true } },
+        submissions: {
+          where: { userId: parseInt(userId) },
+          select: { id: true, score: true },
+        },
       },
     });
     if (!ch) return null;
     const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
     const linkedGoalId = goalTag ? parseInt(goalTag.split(':')[1]) : null;
     const isCompleted = ch.progress_events.some(
-      (ev) => ev.eventType === 'challenge_completed',
+      (ev) => ev.eventType === 'challenge_completed'
     );
     const hasSubmissions = ch.submissions.length > 0;
+    const scoredSubmissions = ch.submissions.filter(
+      (s) => typeof s.score === 'number'
+    );
+    const highestScore =
+      scoredSubmissions.length > 0
+        ? Math.max(...scoredSubmissions.map((s) => s.score))
+        : null;
     const status = isCompleted
       ? 'completed'
       : hasSubmissions
-        ? 'in_progress'
-        : 'todo';
+      ? 'in_progress'
+      : 'todo';
     return {
       id: ch.id,
       title: ch.title,
@@ -91,6 +112,7 @@ const challengeService = {
       updatedAt: ch.updatedAt,
       goalId: linkedGoalId,
       status,
+      highestScore,
       prerequisites: ch.prerequisites || [],
     };
   },
@@ -107,6 +129,7 @@ const challengeService = {
       pointsReward,
       maxAttempts,
       goalId, // optional linkage via tag
+      tags: providedTags = [], // Accept tags from request (e.g., AI challenges)
       prerequisites = [], // array of challenge IDs required before this one
     } = challengeData;
 
@@ -114,16 +137,22 @@ const challengeService = {
       throw new Error('Title, description, and instructions are required');
     }
 
-    const tags = [];
+    // Start with provided tags or empty array
+    const tags = Array.isArray(providedTags) ? [...providedTags] : [];
+
+    // Add goal tag if goalId provided and not already in tags
     if (goalId) {
-      const goal = await prisma.goals.findFirst({
-        where: { id: parseInt(goalId), userId: parseInt(userId) },
-        select: { id: true },
-      });
-      if (!goal) {
-        throw new Error('Linked goal not found or not owned by user');
+      const goalTag = `goal:${parseInt(goalId)}`;
+      if (!tags.includes(goalTag)) {
+        const goal = await prisma.goals.findFirst({
+          where: { id: parseInt(goalId), userId: parseInt(userId) },
+          select: { id: true },
+        });
+        if (!goal) {
+          throw new Error('Linked goal not found or not owned by user');
+        }
+        tags.push(goalTag);
       }
-      tags.push(`goal:${parseInt(goalId)}`);
     }
 
     // Validate prerequisites exist and belong to user
@@ -140,8 +169,8 @@ const challengeService = {
       if (missing.length) {
         throw new Error(
           `Prerequisite challenge(s) not found or not owned: ${missing.join(
-            ', ',
-          )}`,
+            ', '
+          )}`
         );
       }
       // If linking to a goal, ensure prereqs belong to same goal for coherence
@@ -153,8 +182,8 @@ const challengeService = {
         if (crossGoal.length) {
           throw new Error(
             `Prerequisite challenge(s) must be in the same goal (${goalId}): ${crossGoal.join(
-              ', ',
-            )}`,
+              ', '
+            )}`
           );
         }
       }
@@ -239,7 +268,7 @@ const challengeService = {
         select: { tags: true },
       });
       const otherTags = (existing?.tags || []).filter(
-        (t) => !t.startsWith('goal:'),
+        (t) => !t.startsWith('goal:')
       );
       const updatedTags = newGoalId
         ? [...otherTags, `goal:${newGoalId}`]
@@ -262,8 +291,8 @@ const challengeService = {
         if (missing.length) {
           throw new Error(
             `Prerequisite challenge(s) not found or not owned: ${missing.join(
-              ', ',
-            )}`,
+              ', '
+            )}`
           );
         }
       }
@@ -289,14 +318,21 @@ const challengeService = {
     const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
     const linkedGoalId = goalTag ? parseInt(goalTag.split(':')[1]) : null;
     const isCompleted = ch.progress_events.some(
-      (ev) => ev.eventType === 'challenge_completed',
+      (ev) => ev.eventType === 'challenge_completed'
     );
     const hasSubmissions = ch.submissions.length > 0;
+    const scoredSubmissions = ch.submissions.filter(
+      (s) => typeof s.score === 'number'
+    );
+    const highestScore =
+      scoredSubmissions.length > 0
+        ? Math.max(...scoredSubmissions.map((s) => s.score))
+        : null;
     const status = isCompleted
       ? 'completed'
       : hasSubmissions
-        ? 'in_progress'
-        : 'todo';
+      ? 'in_progress'
+      : 'todo';
     return {
       id: ch.id,
       title: ch.title,
@@ -312,6 +348,7 @@ const challengeService = {
       updatedAt: ch.updatedAt,
       goalId: linkedGoalId,
       status,
+      highestScore,
       prerequisites: ch.prerequisites || [],
     };
   },
@@ -321,7 +358,7 @@ const challengeService = {
     const id = parseInt(challengeId);
     const uid = parseInt(userId);
 
-    // Use a transaction to ensure atomic cleanup
+    // Use a transaction to ensure cleanup
     const [deletedEvents, deletedChallenges] = await prisma.$transaction([
       // Delete ALL progress events referencing this challenge (can't rely on userId)
       prisma.progress_events.deleteMany({
@@ -364,7 +401,7 @@ const challengeService = {
       const missing = prereqIds.filter((id) => !completedSet.has(id));
       if (missing.length) {
         throw new Error(
-          `Complete prerequisite challenge(s) first: ${missing.join(', ')}`,
+          `Complete prerequisite challenge(s) first: ${missing.join(', ')}`
         );
       }
     }
@@ -402,10 +439,7 @@ const challengeService = {
   },
 
   // TODO: Generate personalized challenges using AI
-  generatePersonalizedChallenges: async (userId) => {
-    // Will be implemented with AI integration
-    throw new Error('Not implemented - AI generation coming soon');
-  },
+  generatePersonalizedChallenges: async (userId) => {},
 
   // TODO: Validate challenge completion
   validateCompletion: async (challengeId, submissionData) => {

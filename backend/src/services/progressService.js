@@ -7,26 +7,25 @@ const progressService = {
   calculateOverallProgress: async (userId) => {
     const uid = parseInt(userId);
 
-    // Goals summary with dynamic progress
-    const goals = await prisma.goals.findMany({
-      where: { userId: uid },
-      select: {
-        id: true,
-        title: true,
-        isCompleted: true,
-        progressPercentage: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    // Goals summary with dynamic progress - use goalService to get recalculated progress
+    const goalService = require('./goalService');
+    const goals = await goalService.getUserGoals(uid);
 
     const goalsCompleted = goals.filter((g) => g.isCompleted).length;
-    const avgProgress = goals.length
+    const avgGoalProgress = goals.length
       ? Math.round(
-        goals.reduce((sum, g) => sum + (g.progressPercentage || 0), 0) /
-            goals.length,
-      )
+          goals.reduce((sum, g) => sum + (g.progressPercentage || 0), 0) /
+            goals.length
+        )
       : 0;
+
+    // Get all user's challenges to calculate overall completion
+    const allChallenges = await prisma.challenges.findMany({
+      where: { createdBy: uid },
+      select: { id: true },
+    });
+
+    const totalChallenges = allChallenges.length;
 
     // Events summary
     const [pointsAgg, challengeCompletedCount] = await Promise.all([
@@ -41,6 +40,29 @@ const progressService = {
 
     const totalPoints = pointsAgg._sum.pointsEarned || 0;
 
+    // Calculate overall progress based on challenge completion
+    // If user has goals, blend challenge completion (70%) with goal progress (30%)
+    // If no goals, use 100% challenge completion
+    let overallProgressPercentage = 0;
+    if (totalChallenges > 0) {
+      const challengeCompletionPercentage = Math.round(
+        (challengeCompletedCount / totalChallenges) * 100
+      );
+
+      if (goals.length > 0) {
+        // Blend: 70% challenge completion, 30% goal progress
+        overallProgressPercentage = Math.round(
+          challengeCompletionPercentage * 0.7 + avgGoalProgress * 0.3
+        );
+      } else {
+        // No goals, use pure challenge completion
+        overallProgressPercentage = challengeCompletionPercentage;
+      }
+    } else if (goals.length > 0) {
+      // No challenges but has goals, use goal progress
+      overallProgressPercentage = avgGoalProgress;
+    }
+
     // Streaks based on event days
     const events = await prisma.progress_events.findMany({
       where: { userId: uid },
@@ -51,7 +73,7 @@ const progressService = {
     const datesSet = new Set(
       events
         .filter((e) => e.timestampOccurred)
-        .map((e) => e.timestampOccurred.toISOString().slice(0, 10)),
+        .map((e) => e.timestampOccurred.toISOString().slice(0, 10))
     );
 
     const today = new Date();
@@ -59,7 +81,7 @@ const progressService = {
 
     // Current streak
     let curr = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
     );
     let currentStreak = 0;
     while (datesSet.has(dateKey(curr))) {
@@ -84,11 +106,13 @@ const progressService = {
     }
 
     return {
-      overallProgressPercentage: avgProgress,
+      overallProgressPercentage,
       totals: {
         totalPoints,
         completedChallenges: challengeCompletedCount,
+        totalChallenges,
         completedGoals: goalsCompleted,
+        totalGoals: goals.length,
         currentStreakDays: currentStreak,
         longestStreakDays: longestStreak,
       },
@@ -200,24 +224,24 @@ const progressService = {
 
     // Enrich with titles
     const goalIds = Array.from(
-      new Set(events.map((e) => e.relatedGoalId).filter(Boolean)),
+      new Set(events.map((e) => e.relatedGoalId).filter(Boolean))
     );
     const challengeIds = Array.from(
-      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean)),
+      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean))
     );
 
     const [goals, challenges] = await Promise.all([
       goalIds.length
         ? prisma.goals.findMany({
-          where: { id: { in: goalIds } },
-          select: { id: true, title: true },
-        })
+            where: { id: { in: goalIds } },
+            select: { id: true, title: true },
+          })
         : Promise.resolve([]),
       challengeIds.length
         ? prisma.challenges.findMany({
-          where: { id: { in: challengeIds } },
-          select: { id: true, title: true, category: true },
-        })
+            where: { id: { in: challengeIds } },
+            select: { id: true, title: true, category: true },
+          })
         : Promise.resolve([]),
     ]);
 
@@ -258,7 +282,7 @@ const progressService = {
       select: { relatedChallengeId: true },
     });
     const challengeIds = Array.from(
-      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean)),
+      new Set(events.map((e) => e.relatedChallengeId).filter(Boolean))
     );
     if (!challengeIds.length) return [];
     const challenges = await prisma.challenges.findMany({

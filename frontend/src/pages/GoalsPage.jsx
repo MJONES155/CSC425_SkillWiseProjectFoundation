@@ -35,6 +35,16 @@ const GoalsPage = () => {
 
   useEffect(() => {
     loadGoals();
+
+    // Listen for goal progress updates from other pages (e.g., challenge feedback)
+    const handleProgressUpdate = () => {
+      loadGoals();
+    };
+    window.addEventListener('goal:progress-updated', handleProgressUpdate);
+
+    return () => {
+      window.removeEventListener('goal:progress-updated', handleProgressUpdate);
+    };
   }, []);
 
   const handleCreateGoal = () => {
@@ -135,14 +145,14 @@ const GoalsPage = () => {
 
     if (filters.category) {
       filtered = filtered.filter(
-        (goal) => goal.category.toLowerCase() === filters.category.toLowerCase(),
+        (goal) => goal.category.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
     if (filters.difficulty) {
       filtered = filtered.filter(
         (goal) =>
-          goal.difficulty.toLowerCase() === filters.difficulty.toLowerCase(),
+          goal.difficulty.toLowerCase() === filters.difficulty.toLowerCase()
       );
     }
 
@@ -153,7 +163,7 @@ const GoalsPage = () => {
           (goal.description &&
             goal.description
               .toLowerCase()
-              .includes(filters.search.toLowerCase())),
+              .includes(filters.search.toLowerCase()))
       );
     }
 
@@ -172,7 +182,11 @@ const GoalsPage = () => {
     <div className="goals-page">
       <div className="page-header">
         <h1>My Learning Goals</h1>
-        <button className="btn-primary" onClick={handleCreateGoal} data-test="create-goal-button">
+        <button
+          className="btn-primary"
+          onClick={handleCreateGoal}
+          data-test="create-goal-button"
+        >
           Create New Goal
         </button>
       </div>
@@ -265,7 +279,9 @@ const GoalsPage = () => {
         )}
       </div>
 
-      {successMessage && <div data-test="goal-success-message">{successMessage}</div>}
+      {successMessage && (
+        <div data-test="goal-success-message">{successMessage}</div>
+      )}
 
       {showForm && (
         <GoalForm

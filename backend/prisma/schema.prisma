@@ -29,22 +29,22 @@ model achievements {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model ai_feedback {
   id                 Int         @id @default(autoincrement())
-  submission_id      Int
-  feedback_text      String
-  feedback_type      String?     @default("general") @db.VarChar(50)
-  confidence_score   Decimal?    @db.Decimal(3, 2)
+  submissionId      Int         @map("submission_id")
+  feedbackText      String      @map("feedback_text")
+  feedbackType      String?     @map("feedback_type") @default("general") @db.VarChar(50)
+  confidenceScore   Decimal?    @map("confidence_score") @db.Decimal(3, 2)
   suggestions        String[]
   strengths          String[]
   improvements       String[]
-  ai_model           String?     @db.VarChar(50)
-  processing_time_ms Int?
-  created_at         DateTime?   @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?   @default(now()) @db.Timestamptz(6)
-  submissions        submissions @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  aiModel           String?     @map("ai_model") @db.VarChar(50)
+  processingTimeMs Int?        @map("processing_time_ms")
+  createdAt         DateTime?   @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime?   @map("updated_at") @default(now()) @db.Timestamptz(6)
+  submissions        submissions @relation(fields: [submissionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([created_at], map: "idx_ai_feedback_created_at")
-  @@index([submission_id], map: "idx_ai_feedback_submission_id")
-  @@index([feedback_type], map: "idx_ai_feedback_type")
+  @@index([createdAt], map: "idx_ai_feedback_created_at")
+  @@index([submissionId], map: "idx_ai_feedback_submission_id")
+  @@index([feedbackType], map: "idx_ai_feedback_type")
 }
 
 model challenges {
@@ -199,33 +199,33 @@ model refresh_tokens {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model submissions {
   id                                 Int               @id @default(autoincrement())
-  user_id                            Int
-  challenge_id                       Int
-  submission_text                    String
-  submission_files                   Json?
+  userId                            Int               @map("user_id")
+  challengeId                       Int              @map("challenge_id")
+  submissionText                    String          @map("submission_text")
+  submissionFiles                   Json?           @map("submission_files")
   status                             String?           @default("submitted") @db.VarChar(20)
   score                              Int?
-  attempt_number                     Int?              @default(1)
-  time_spent_minutes                 Int?
-  submitted_at                       DateTime?         @default(now()) @db.Timestamptz(6)
-  graded_at                          DateTime?         @db.Timestamptz(6)
-  graded_by                          Int?
+  attemptNumber                     Int?              @map("attempt_number") @default(1)
+  timeSpentMinutes                 Int?              @map("time_spent_minutes")
+  submittedAt                       DateTime?         @map("submitted_at") @default(now()) @db.Timestamptz(6)
+  gradedAt                          DateTime?         @map("graded_at") @db.Timestamptz(6)
+  gradedBy                          Int?              @map("graded_by")
   feedback                           String?
-  is_flagged                         Boolean?          @default(false)
-  created_at                         DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at                         DateTime?         @default(now()) @db.Timestamptz(6)
+  isFlagged                         Boolean?          @map("is_flagged") @default(false)
+  createdAt                         DateTime?         @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt                         DateTime?         @map("updated_at") @default(now()) @db.Timestamptz(6)
   ai_feedback                        ai_feedback[]
   peer_reviews                       peer_reviews[]
   progress_events                    progress_events[]
-  challenges                         challenges        @relation(fields: [challenge_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_submissions_graded_byTousers User?            @relation("submissions_graded_byTousers", fields: [graded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users_submissions_user_idTousers   User             @relation("submissions_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  challenges                         challenges        @relation(fields: [challengeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_submissions_graded_byTousers User?            @relation("submissions_graded_byTousers", fields: [gradedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_submissions_user_idTousers   User             @relation("submissions_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@unique([user_id, challenge_id, attempt_number], map: "idx_submissions_user_challenge_attempt")
-  @@index([challenge_id], map: "idx_submissions_challenge_id")
+  @@unique([userId, challengeId, attemptNumber], map: "idx_submissions_user_challenge_attempt")
+  @@index([challengeId], map: "idx_submissions_challenge_id")
   @@index([status], map: "idx_submissions_status")
-  @@index([submitted_at], map: "idx_submissions_submitted_at")
-  @@index([user_id], map: "idx_submissions_user_id")
+  @@index([submittedAt], map: "idx_submissions_submitted_at")
+  @@index([userId], map: "idx_submissions_user_id")
 }
 
 model user_achievements {

@@ -117,7 +117,10 @@ const goalService = {
     }
 
     // Set completionDate when manually marking complete
-    if (updateData.isCompleted === true && updateData.progressPercentage === 100) {
+    if (
+      updateData.isCompleted === true &&
+      updateData.progressPercentage === 100
+    ) {
       data.completionDate = new Date();
     } else if (updateData.isCompleted === false) {
       data.completionDate = null;
@@ -179,12 +182,18 @@ const goalService = {
   // Recalculate goal progress based on tagged challenges and completion events
   calculateCompletion: async (goalId, userId) => {
     const tagValue = `goal:${goalId}`;
+    console.log('calculateCompletion called:', { goalId, userId, tagValue });
+
     // All challenges created by user tagged for this goal
     const challenges = await prisma.challenges.findMany({
       where: { createdBy: parseInt(userId), tags: { has: tagValue } },
       select: { id: true, pointsReward: true },
     });
     const total = challenges.length;
+    console.log('Found challenges for goal:', {
+      total,
+      challengeIds: challenges.map((c) => c.id),
+    });
     if (total === 0) {
       // Ensure stored progress is 0
       await prisma.goals.updateMany({
@@ -200,11 +209,17 @@ const goalService = {
         relatedChallengeId: { in: challengeIds },
         eventType: 'challenge_completed',
       },
-      select: { id: true },
+      select: { id: true, relatedChallengeId: true },
     });
     const completed = completionEvents.length;
+    console.log('Found completion events:', {
+      completed,
+      events: completionEvents,
+    });
+
     const percentage = Math.round((completed / total) * 100);
     const isCompleted = percentage === 100;
+    console.log('Calculated progress:', { percentage, isCompleted });
     await prisma.goals.updateMany({
       where: { id: parseInt(goalId), userId: parseInt(userId) },
       data: {

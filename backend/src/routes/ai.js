@@ -4,7 +4,7 @@ const router = express.Router();
 const aiController = require('../controllers/aiController');
 const auth = require('../middleware/auth');
 
-// TODO: Add POST /feedback route for generating AI feedback
+// TODO: Add POST /feedback route for generating AI feedback (requires auth)
 router.post('/feedback', auth, aiController.generateFeedback);
 
 // TODO: Add GET /hints/:challengeId route for getting hints

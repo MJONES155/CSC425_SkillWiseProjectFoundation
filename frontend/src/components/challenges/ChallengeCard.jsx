@@ -15,13 +15,16 @@ const ChallengeCard = ({
   onDelete,
   onStart,
   onComplete,
+  onFeedback,
+  onViewSubmissions,
 }) => {
   const difficulty = challenge?.difficulty || 'Medium';
   const status = challenge?.status || null;
 
   return (
     <Card
-      sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }} data-test={`challenge-card-${challenge?.id}`}
+      sx={{ maxWidth: 420, mb: 2, p: 2, borderRadius: 2, boxShadow: 3 }}
+      data-test={`challenge-card-${challenge?.id}`}
     >
       {/* Header */}
       <Box
@@ -44,12 +47,20 @@ const ChallengeCard = ({
             size="small"
             variant="outlined"
           />
-          {status && (
+          {typeof challenge?.highestScore === 'number' ? (
             <Chip
-              label={status.replace('_', ' ')}
-              color={status === 'completed' ? 'success' : 'warning'}
+              label={`Best: ${challenge.highestScore}/100`}
+              color="primary"
               size="small"
             />
+          ) : (
+            status && (
+              <Chip
+                label={status.replace('_', ' ')}
+                color={status === 'completed' ? 'success' : 'warning'}
+                size="small"
+              />
+            )
           )}
         </Stack>
       </Box>
@@ -87,6 +98,17 @@ const ChallengeCard = ({
               🎯 Max attempts: {challenge.maxAttempts}
             </Typography>
           )}
+
+          {challenge?.highestScore !== null &&
+            challenge?.highestScore !== undefined && (
+              <Typography
+                variant="body2"
+                fontWeight="bold"
+                color="primary.main"
+              >
+                🏆 Best Score: {challenge.highestScore}/100
+              </Typography>
+            )}
 
           {typeof challenge?.goalId === 'number' && (
             <Typography variant="body2">
@@ -138,6 +160,28 @@ const ChallengeCard = ({
             onClick={() => onDelete(challenge.id)}
           >
             Delete
+          </Button>
+        )}
+
+        {onFeedback && (
+          <Button
+            size="small"
+            color="info"
+            variant="outlined"
+            onClick={() => onFeedback(challenge)}
+          >
+            Submit for Feedback
+          </Button>
+        )}
+
+        {onViewSubmissions && (
+          <Button
+            size="small"
+            color="secondary"
+            variant="text"
+            onClick={() => onViewSubmissions(challenge)}
+          >
+            View Submissions
           </Button>
         )}
       </CardActions>
