@@ -1,5 +1,7 @@
+// src/components/auth/SignupForm.jsx
 import React, { useState } from 'react';
 import * as Sentry from '@sentry/react';
+import { Box, TextField, Button, Alert, Stack } from '@mui/material';
 
 const SignupForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -13,9 +15,9 @@ const SignupForm = ({ onSubmit }) => {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
-    try {
-      e.preventDefault();
+    e.preventDefault();
 
+    try {
       // Basic validation
       if (formData.password !== formData.confirmPassword) {
         setError('Passwords do not match');
@@ -38,90 +40,83 @@ const SignupForm = ({ onSubmit }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="signup-form">
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
-        </div>
-      )}
+    <Box component="form" onSubmit={handleSubmit} noValidate>
+      <Stack spacing={2}>
+        {error && <Alert severity="error">{error}</Alert>}
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="firstName">First Name</label>
-          <input
-            type="text"
-            id="firstName"
-            name="firstName"
-            data-test="firstName"
-            value={formData.firstName}
-            onChange={(e) =>
-              setFormData({ ...formData, firstName: e.target.value })
-            }
-            required
-          />
-        </div>
+        <TextField
+          label="First Name"
+          variant="outlined"
+          fullWidth
+          value={formData.firstName}
+          onChange={(e) =>
+            setFormData({ ...formData, firstName: e.target.value })
+          }
+          required
+          inputProps={{ 'data-test': 'firstName' }}
+        />
 
-        <div className="form-group">
-          <label htmlFor="lastName">Last Name</label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            data-test="lastName"
-            value={formData.lastName}
-            onChange={(e) =>
-              setFormData({ ...formData, lastName: e.target.value })
-            }
-            required
-          />
-        </div>
-      </div>
+        <TextField
+          label="Last Name"
+          variant="outlined"
+          fullWidth
+          value={formData.lastName}
+          onChange={(e) =>
+            setFormData({ ...formData, lastName: e.target.value })
+          }
+          required
+          inputProps={{ 'data-test': 'lastName' }}
+        />
 
-      <div className="form-group">
-        <label htmlFor="email">Email</label>
-        <input
+        <TextField
+          label="Email"
           type="email"
-          id="email"
-          data-test="email"
+          variant="outlined"
+          fullWidth
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
+          inputProps={{ 'data-test': 'email' }}
         />
-      </div>
 
-      <div className="form-group">
-        <label htmlFor="password">Password</label>
-        <input
+        <TextField
+          label="Password"
           type="password"
-          id="password"
-          data-test="password"
+          variant="outlined"
+          fullWidth
           value={formData.password}
           onChange={(e) =>
             setFormData({ ...formData, password: e.target.value })
           }
           required
+          inputProps={{ 'data-test': 'password' }}
         />
-      </div>
 
-      <div className="form-group">
-        <label htmlFor="confirmPassword">Confirm Password</label>
-        <input
+        <TextField
+          label="Confirm Password"
           type="password"
-          id="confirmPassword"
-          name="confirmPassword"
-          data-test="confirmPassword"
+          variant="outlined"
+          fullWidth
           value={formData.confirmPassword}
           onChange={(e) =>
             setFormData({ ...formData, confirmPassword: e.target.value })
           }
           required
+          inputProps={{ 'data-test': 'confirmPassword' }}
         />
-      </div>
 
-      <button type="submit" className="btn-primary" data-test="signup-button">
-        Create Account
-      </button>
-    </form>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          size="large"
+          data-test="signup-button"
+        >
+          Create Account
+        </Button>
+      </Stack>
+    </Box>
   );
 };
 

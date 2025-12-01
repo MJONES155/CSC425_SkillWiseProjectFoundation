@@ -1,43 +1,45 @@
 import * as React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { useAuth } from '../../hooks/useAuth';
+
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
-import '../../styles/Header.css';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 
 export default function HeaderTabs() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [value, setValue] = React.useState(location.pathname);
 
-  const [value, setValue] = React.useState(0);
+  React.useEffect(() => {
+    setValue(location.pathname);
+  }, [location.pathname]);
 
-  const handleChange = (event, newValue) => {
+  const authenticatedTabs = [
+    { label: 'Dashboard 📊', path: '/dashboard' },
+    { label: 'Goals 🎯', path: '/goals' },
+    { label: 'Challenges 🚀', path: '/challenges' },
+    { label: 'Progress 📈', path: '/progress' },
+    { label: 'Leaderboard 🏆', path: '/leaderboard' },
+    { label: 'Peer Review 👥', path: '/peer-review' },
+  ];
+
+  const unauthTabs = [
+    { label: 'Home', path: '/' },
+    { label: 'About', path: '/about' },
+    { label: 'Login', path: '/login' },
+    { label: 'Sign Up', path: '/signup' },
+  ];
+
+  const handleChange = (e, newValue) => {
     setValue(newValue);
-    // Navigate when a tab is clicked
-    switch (newValue) {
-      case 0:
-        navigate('/dashboard');
-        break;
-      case 1:
-        navigate('/goals');
-        break;
-      case 2:
-        navigate('/challenges');
-        break;
-      case 3:
-        navigate('/progress');
-        break;
-      case 4:
-        navigate('/leaderboard');
-        break;
-      case 5:
-        navigate('/peer-review');
-        break;
-      default:
-        break;
-    }
+    navigate(newValue);
   };
 
   const handleLogout = async () => {
@@ -51,50 +53,102 @@ export default function HeaderTabs() {
   };
 
   return (
-    <header className="header">
-      <div className="container">
-        <div className="nav-brand">
-          <h1>SkillWise</h1>
-        </div>
-        {user ? (
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', flexGrow: 1 }}>
+    <AppBar position="static" color="default" elevation={1}>
+      <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
+        {/* LEFT SIDE — Logo + SkillWise */}
+        <Box
+          component={Link}
+          to="/"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'inherit',
+            mr: 3,
+          }}
+        >
+          <Box
+            component="img"
+            src="/favicon.ico" // Your logo path
+            alt="SkillWise Logo"
+            sx={{ width: 40, height: 40, mr: 1 }}
+          />
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            SkillWise
+          </Typography>
+        </Box>
+
+        {/* CENTER (authenticated only) */}
+        {user && (
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
             <Tabs
               value={value}
               onChange={handleChange}
-              aria-label="navigation tabs"
+              textColor="primary"
+              indicatorColor="primary"
               variant="scrollable"
               scrollButtons="auto"
+              aria-label="navigation tabs"
             >
-              <Tab label="Dashboard 📊" />
-              <Tab label="Goals 🎯" />
-              <Tab label="Challenges 🚀" />
-              <Tab label="Progress 📈" />
-              <Tab label="Leaderboard 🏆" />
-              <Tab label="Peer Review 👥" />
+              {authenticatedTabs.map((tab) => (
+                <Tab
+                  key={tab.path}
+                  label={tab.label}
+                  value={tab.path}
+                  component={Link}
+                  to={tab.path}
+                />
+              ))}
             </Tabs>
           </Box>
-        ) : (
-          <nav className="nav-menu">
-            <Link to="/">Home</Link>
-          </nav>
         )}
-        <div className="nav-actions">
-          {user ? (
-            <>
-              <span>Welcome, {user.firstName}!</span>
-              <Link to="/profile">Profile</Link>
-              <button onClick={handleLogout} className="logout-button">
-                Logout
-              </button>
-            </>
+
+        {/* RIGHT SIDE — Unauth tabs OR Profile/Logout */}
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}>
+          {!user ? (
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              textColor="primary"
+              indicatorColor="primary"
+            >
+              {unauthTabs.map((tab) => (
+                <Tab
+                  key={tab.path}
+                  label={tab.label}
+                  value={tab.path}
+                  component={Link}
+                  to={tab.path}
+                />
+              ))}
+            </Tabs>
           ) : (
             <>
-              <Link to="/login">Login</Link>
-              <Link to="/signup">Sign Up</Link>
+              <Typography variant="body1">
+                Welcome, {user.firstName}!
+              </Typography>
+
+              <Button
+                component={Link}
+                to="/profile"
+                variant="outlined"
+                size="small"
+              >
+                Profile
+              </Button>
+
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
             </>
           )}
-        </div>
-      </div>
-    </header>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }
