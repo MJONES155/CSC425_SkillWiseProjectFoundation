@@ -6,8 +6,20 @@ const challengeController = {
   // TODO: Get all challenges
   getChallenges: async (req, res, next) => {
     const userId = req.user.id;
+    const filters = {
+      goalId: req.query.goalId ? parseInt(req.query.goalId, 10) : undefined,
+      category: req.query.category,
+      difficulty: req.query.difficulty,
+      isActive:
+        req.query.isActive !== undefined
+          ? req.query.isActive === 'true'
+          : undefined,
+    };
     try {
-      const challenges = await challengeService.getUserChallenges(userId);
+      const challenges = await challengeService.getUserChallenges(
+        userId,
+        filters
+      );
       res.status(200).json({ success: true, data: challenges });
     } catch (error) {
       Sentry.captureException(error);
@@ -130,6 +142,29 @@ const challengeController = {
         success: true,
         data: updated,
         message: 'Challenge marked as completed',
+      });
+    } catch (error) {
+      Sentry.captureException(error);
+      next(error);
+    }
+  },
+
+  // Mark challenge as incomplete (remove completion)
+  uncompleteChallenge: async (req, res, next) => {
+    try {
+      const challengeId = req.params.id;
+      const userId = req.user.id;
+      if (!challengeId) {
+        return res.status(400).json({ message: 'Challenge ID is required' });
+      }
+      const updated = await challengeService.uncompleteChallenge(
+        challengeId,
+        userId
+      );
+      res.status(200).json({
+        success: true,
+        data: updated,
+        message: 'Challenge marked as incomplete',
       });
     } catch (error) {
       Sentry.captureException(error);

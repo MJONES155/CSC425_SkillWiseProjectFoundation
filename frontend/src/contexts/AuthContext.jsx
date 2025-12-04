@@ -27,51 +27,51 @@ const AUTH_ACTIONS = {
 // Reducer function
 const authReducer = (state, action) => {
   switch (action.type) {
-  case AUTH_ACTIONS.SET_LOADING:
-    return {
-      ...state,
-      isLoading: action.payload,
-    };
+    case AUTH_ACTIONS.SET_LOADING:
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
 
-  case AUTH_ACTIONS.LOGIN_SUCCESS:
-    return {
-      ...state,
-      user: action.payload.user,
-      isAuthenticated: true,
-      isLoading: false,
-      error: null,
-    };
+    case AUTH_ACTIONS.LOGIN_SUCCESS:
+      return {
+        ...state,
+        user: action.payload.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
 
-  case AUTH_ACTIONS.LOGOUT:
-    return {
-      ...state,
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-    };
+    case AUTH_ACTIONS.LOGOUT:
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      };
 
-  case AUTH_ACTIONS.UPDATE_USER:
-    return {
-      ...state,
-      user: { ...state.user, ...action.payload },
-    };
+    case AUTH_ACTIONS.UPDATE_USER:
+      return {
+        ...state,
+        user: { ...state.user, ...action.payload },
+      };
 
-  case AUTH_ACTIONS.SET_ERROR:
-    return {
-      ...state,
-      error: action.payload,
-      isLoading: false,
-    };
+    case AUTH_ACTIONS.SET_ERROR:
+      return {
+        ...state,
+        error: action.payload,
+        isLoading: false,
+      };
 
-  case AUTH_ACTIONS.CLEAR_ERROR:
-    return {
-      ...state,
-      error: null,
-    };
+    case AUTH_ACTIONS.CLEAR_ERROR:
+      return {
+        ...state,
+        error: null,
+      };
 
-  default:
-    return state;
+    default:
+      return state;
   }
 };
 
@@ -89,16 +89,36 @@ export const AuthProvider = ({ children }) => {
 
       if (token) {
         try {
-          // Validate token by fetching user profile
+          // Try to get cached user data first
+          const cachedUser = localStorage.getItem('user');
+          if (cachedUser) {
+            try {
+              const userData = JSON.parse(cachedUser);
+              dispatch({
+                type: AUTH_ACTIONS.LOGIN_SUCCESS,
+                payload: { user: userData },
+              });
+            } catch (parseError) {
+              console.error('Failed to parse cached user data:', parseError);
+            }
+          }
+
+          // Validate token by fetching fresh user profile
           const response = await apiService.user.getProfile();
+          const userData = response.data?.data || response.data;
+
+          // Cache user data in localStorage
+          localStorage.setItem('user', JSON.stringify(userData));
+
           dispatch({
             type: AUTH_ACTIONS.LOGIN_SUCCESS,
-            payload: { user: response.data },
+            payload: { user: userData },
           });
         } catch (error) {
           console.error('Token validation failed:', error);
           // Token is invalid, clear it
           clearTokens();
+          localStorage.removeItem('user');
           dispatch({ type: AUTH_ACTIONS.LOGOUT });
         }
       } else {
@@ -113,6 +133,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const handleLogout = (event) => {
       console.log('Logout event received:', event.detail?.reason);
+      localStorage.removeItem('user');
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     };
 
@@ -120,6 +141,37 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       window.removeEventListener('auth:logout', handleLogout);
+    };
+  }, []);
+
+  // Listen for token refresh events and refresh user profile
+  useEffect(() => {
+    const handleTokenRefresh = async () => {
+      console.log('Token refreshed, re-fetching user profile...');
+      try {
+        const response = await apiService.user.getProfile();
+        const userData = response.data?.data || response.data;
+
+        // Update cached user data
+        localStorage.setItem('user', JSON.stringify(userData));
+
+        dispatch({
+          type: AUTH_ACTIONS.UPDATE_USER,
+          payload: userData,
+        });
+        console.log('User profile refreshed successfully');
+      } catch (error) {
+        console.error(
+          'Failed to refresh user profile after token refresh:',
+          error
+        );
+      }
+    };
+
+    window.addEventListener('auth:token-refreshed', handleTokenRefresh);
+
+    return () => {
+      window.removeEventListener('auth:token-refreshed', handleTokenRefresh);
     };
   }, []);
 
@@ -143,8 +195,9 @@ export const AuthProvider = ({ children }) => {
 
       const { user, accessToken } = response.data;
 
-      // Store access token
+      // Store access token and user data
       setAccessToken(accessToken);
+      localStorage.setItem('user', JSON.stringify(user));
 
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -182,8 +235,9 @@ export const AuthProvider = ({ children }) => {
 
       const { user, accessToken } = response.data;
 
-      // Store access token
+      // Store access token and user data
       setAccessToken(accessToken);
+      localStorage.setItem('user', JSON.stringify(user));
 
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -214,8 +268,9 @@ export const AuthProvider = ({ children }) => {
       // Continue with logout even if API call fails
       console.error('Logout API call failed:', error);
     } finally {
-      // Clear tokens and update state
+      // Clear tokens, user data, and update state
       clearTokens();
+      localStorage.removeItem('user');
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
     }
   };
@@ -227,7 +282,10 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await apiService.user.updateProfile(profileData);
-      const updatedUser = response.data;
+      const updatedUser = response.data?.data || response.data;
+
+      // Update cached user data
+      localStorage.setItem('user', JSON.stringify(updatedUser));
 
       dispatch({
         type: AUTH_ACTIONS.UPDATE_USER,

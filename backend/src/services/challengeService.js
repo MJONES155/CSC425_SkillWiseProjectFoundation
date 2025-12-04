@@ -12,6 +12,9 @@ const challengeService = {
     if (filters.isActive !== undefined) where.isActive = filters.isActive;
     if (filters.goalId) {
       where.tags = { has: `goal:${filters.goalId}` };
+      console.log(
+        `[challengeService] Filtering challenges for user ${userId}, goal ${filters.goalId}, looking for tag: goal:${filters.goalId}`
+      );
     }
 
     const raw = await prisma.challenges.findMany({
@@ -25,6 +28,11 @@ const challengeService = {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    console.log(
+      `[challengeService] Found ${raw.length} challenges with filters:`,
+      { userId, filters, where: JSON.stringify(where) }
+    );
 
     return raw.map((ch) => {
       const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
@@ -194,7 +202,10 @@ const challengeService = {
         title,
         description,
         instructions,
-        category: category || null,
+        category:
+          category && typeof category === 'string' && category.trim() !== ''
+            ? category
+            : 'programming',
         difficulty: difficulty || 'Medium',
         estimatedTimeMinutes: estimatedTimeMinutes || null,
         pointsReward: pointsReward || 10,
@@ -427,6 +438,36 @@ const challengeService = {
         },
       });
     }
+
+    // Recalculate goal progress if linked
+    if (goalId) {
+      const { calculateCompletion } = require('./goalService');
+      await calculateCompletion(goalId, userId);
+    }
+
+    // Return updated challenge with status
+    return await challengeService.getChallengeById(challengeId, userId);
+  },
+
+  // Mark a challenge as incomplete (remove completion event & update goal progress)
+  uncompleteChallenge: async (challengeId, userId) => {
+    const ch = await prisma.challenges.findFirst({
+      where: { id: parseInt(challengeId), createdBy: parseInt(userId) },
+      select: { id: true, tags: true },
+    });
+    if (!ch) throw new Error('Challenge not found');
+
+    const goalTag = ch.tags?.find((t) => t.startsWith('goal:'));
+    const goalId = goalTag ? parseInt(goalTag.split(':')[1]) : null;
+
+    // Delete the completion progress event for this user and challenge
+    await prisma.progress_events.deleteMany({
+      where: {
+        userId: parseInt(userId),
+        relatedChallengeId: ch.id,
+        eventType: 'challenge_completed',
+      },
+    });
 
     // Recalculate goal progress if linked
     if (goalId) {

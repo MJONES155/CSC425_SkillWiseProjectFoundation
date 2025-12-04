@@ -15,11 +15,6 @@ export default function HeaderTabs() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [value, setValue] = React.useState(location.pathname);
-
-  React.useEffect(() => {
-    setValue(location.pathname);
-  }, [location.pathname]);
 
   const authenticatedTabs = [
     { label: 'Dashboard 📊', path: '/dashboard' },
@@ -28,6 +23,7 @@ export default function HeaderTabs() {
     { label: 'Progress 📈', path: '/progress' },
     { label: 'Leaderboard 🏆', path: '/leaderboard' },
     { label: 'Peer Review 👥', path: '/peer-review' },
+    { label: 'Profile 👤', path: '/profile' },
   ];
 
   const unauthTabs = [
@@ -37,8 +33,14 @@ export default function HeaderTabs() {
     { label: 'Sign Up', path: '/signup' },
   ];
 
+  // Determine which tab set is active and if current path matches
+  const currentTabs = user ? authenticatedTabs : unauthTabs;
+  const validPaths = currentTabs.map((tab) => tab.path);
+  const currentValue = validPaths.includes(location.pathname)
+    ? location.pathname
+    : false;
+
   const handleChange = (e, newValue) => {
-    setValue(newValue);
     navigate(newValue);
   };
 
@@ -82,7 +84,7 @@ export default function HeaderTabs() {
         {user && (
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
             <Tabs
-              value={value}
+              value={currentValue}
               onChange={handleChange}
               textColor="primary"
               indicatorColor="primary"
@@ -107,7 +109,7 @@ export default function HeaderTabs() {
         <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}>
           {!user ? (
             <Tabs
-              value={value}
+              value={currentValue}
               onChange={handleChange}
               textColor="primary"
               indicatorColor="primary"
