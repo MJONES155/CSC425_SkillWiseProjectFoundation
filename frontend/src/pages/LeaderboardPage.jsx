@@ -1,7 +1,25 @@
-// TODO: Implement leaderboard and rankings page
+// TODO: Implement leaderboard and rankings page with MUI styling
 import React, { useState, useEffect } from 'react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useAuth } from '../hooks/useAuth';
+
+import {
+  Box,
+  Typography,
+  Paper,
+  Container,
+  Grid,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  Avatar,
+  Card,
+  CardContent,
+  Divider,
+  Stack,
+} from '@mui/material';
 
 const LeaderboardPage = () => {
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -93,178 +111,281 @@ const LeaderboardPage = () => {
 
   const getRankIcon = (rank) => {
     switch (rank) {
-    case 1:
-      return '🥇';
-    case 2:
-      return '🥈';
-    case 3:
-      return '🥉';
-    default:
-      return `#${rank}`;
+      case 1:
+        return '🥇';
+      case 2:
+        return '🥈';
+      case 3:
+        return '🥉';
+      default:
+        return `#${rank}`;
     }
   };
 
   const currentUserRank =
-    leaderboardData.find((user) => user.isCurrentUser)?.rank || 0;
+    leaderboardData.find((u) => u.isCurrentUser)?.rank || 0;
 
   return (
-    <div className="leaderboard-page">
-      <div className="page-header">
-        <h1>Leaderboard</h1>
-        <p>See how you compare with other learners</p>
-      </div>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#dbe6ebff' }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        {/* Header */}
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
+          <Typography variant="h3" fontWeight={700}>
+            Leaderboard
+          </Typography>
+          <Typography sx={{ opacity: 0.7 }}>
+            See how you compare with other learners
+          </Typography>
+        </Box>
 
-      <div className="leaderboard-filters">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label htmlFor="timeframe">Timeframe</label>
-            <select
-              id="timeframe"
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-            >
-              <option value="all-time">All Time</option>
-              <option value="this-month">This Month</option>
-              <option value="this-week">This Week</option>
-              <option value="today">Today</option>
-            </select>
-          </div>
+        {/* Filters */}
+        <Grid container spacing={2} sx={{ mb: 4 }} justifyContent="center">
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Timeframe</InputLabel>
+              <Select
+                value={timeframe}
+                label="Timeframe"
+                onChange={(e) => setTimeframe(e.target.value)}
+              >
+                <MenuItem value="all-time">All Time</MenuItem>
+                <MenuItem value="this-month">This Month</MenuItem>
+                <MenuItem value="this-week">This Week</MenuItem>
+                <MenuItem value="today">Today</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
 
-          <div className="filter-group">
-            <label htmlFor="category">Category</label>
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="overall">Overall Points</option>
-              <option value="challenges">Challenges Completed</option>
-              <option value="goals">Goals Achieved</option>
-              <option value="streak">Learning Streak</option>
-            </select>
-          </div>
-        </div>
-      </div>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={category}
+                label="Category"
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <MenuItem value="overall">Overall Points</MenuItem>
+                <MenuItem value="challenges">Challenges Completed</MenuItem>
+                <MenuItem value="goals">Goals Achieved</MenuItem>
+                <MenuItem value="streak">Learning Streak</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
 
-      {currentUserRank > 0 && (
-        <div className="user-rank-summary">
-          <div className="rank-card current-user">
-            <h3>Your Ranking</h3>
-            <div className="rank-info">
-              <span className="rank-number">#{currentUserRank}</span>
-              <div className="rank-details">
-                <p>
+        {/* Current User Summary */}
+        {currentUserRank > 0 && (
+          <Paper
+            elevation={4}
+            sx={{
+              mb: 5,
+              p: 3,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #1976d2, #4fc3f7)',
+              color: 'white',
+            }}
+          >
+            <Typography variant="h5" fontWeight={600} gutterBottom>
+              Your Ranking
+            </Typography>
+
+            <Stack direction="row" spacing={3} alignItems="center">
+              <Typography variant="h3" fontWeight={700}>
+                #{currentUserRank}
+              </Typography>
+
+              <Box>
+                <Typography>
                   You're in the top{' '}
-                  {Math.round((currentUserRank / leaderboardData.length) * 100)}
-                  % of learners!
-                </p>
-                <small>Keep learning to climb higher!</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                  <strong>
+                    {Math.round(
+                      (currentUserRank / leaderboardData.length) * 100
+                    )}
+                    %
+                  </strong>{' '}
+                  of learners!
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  Keep learning to climb higher!
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        )}
 
-      <div className="leaderboard-content">
         {loading ? (
           <LoadingSpinner message="Loading leaderboard..." />
         ) : (
           <>
-            <div className="podium-section">
-              <h2>Top Performers</h2>
-              <div className="podium">
+            {/* Podium */}
+            <Box sx={{ mb: 6 }}>
+              <Typography variant="h4" fontWeight={700} mb={3}>
+                Top Performers
+              </Typography>
+
+              <Grid container spacing={3}>
                 {leaderboardData.slice(0, 3).map((user, index) => (
-                  <div
-                    key={user.id}
-                    className={`podium-position position-${index + 1}`}
-                  >
-                    <div className="podium-user">
-                      <div className="user-avatar">{user.avatar}</div>
-                      <h4>{user.name}</h4>
-                      <p>{user.points} points</p>
-                      <span className="level-badge">Level {user.level}</span>
-                    </div>
-                    <div className="podium-rank">{getRankIcon(user.rank)}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  <Grid item xs={12} md={4} key={user.id}>
+                    <Card
+                      elevation={6}
+                      sx={{
+                        p: 2,
+                        borderRadius: 4,
+                        textAlign: 'center',
+                        background:
+                          index === 0
+                            ? 'linear-gradient(135deg, #ffeb3b, #ffc107)'
+                            : index === 1
+                            ? 'linear-gradient(135deg, #e0e0e0, #bdbdbd)'
+                            : 'linear-gradient(135deg, #ff8a65, #ff7043)',
+                        color: 'black',
+                      }}
+                    >
+                      <CardContent>
+                        <Typography variant="h3">
+                          {getRankIcon(user.rank)}
+                        </Typography>
 
-            <div className="full-rankings">
-              <h2>Complete Rankings</h2>
-              <div className="rankings-table">
-                <div className="table-header">
-                  <div className="col-rank">Rank</div>
-                  <div className="col-user">User</div>
-                  <div className="col-points">Points</div>
-                  <div className="col-level">Level</div>
-                  <div className="col-challenges">Challenges</div>
-                </div>
-
-                {leaderboardData.map((user) => (
-                  <div
-                    key={user.id}
-                    className={`table-row ${
-                      user.isCurrentUser ? 'current-user' : ''
-                    }`}
-                  >
-                    <div className="col-rank">
-                      <span className="rank-icon">
-                        {getRankIcon(user.rank)}
-                      </span>
-                    </div>
-                    <div className="col-user">
-                      <div className="user-info">
-                        <span className="user-avatar">{user.avatar}</span>
-                        <span className="user-name">
+                        <Typography variant="h5" fontWeight={600}>
                           {user.name}
-                          {user.isCurrentUser && <small> (You)</small>}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="col-points">
-                      <strong>{user.points.toLocaleString()}</strong>
-                    </div>
-                    <div className="col-level">
-                      <span className="level-badge">Level {user.level}</span>
-                    </div>
-                    <div className="col-challenges">
-                      {user.completedChallenges}
-                    </div>
-                  </div>
+                        </Typography>
+
+                        <Typography>{user.points} points</Typography>
+
+                        <Chip
+                          label={`Level ${user.level}`}
+                          sx={{ mt: 1, fontWeight: 600 }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </Grid>
                 ))}
-              </div>
-            </div>
+              </Grid>
+            </Box>
 
-            <div className="achievements-section">
-              <h2>Top Achievements This Week</h2>
-              <div className="achievements-grid">
-                <div className="achievement-card">
-                  <div className="achievement-icon">🚀</div>
-                  <h4>Challenge Master</h4>
-                  <p>Completed 5 challenges in one day</p>
-                  <small>Earned by Alex Johnson</small>
-                </div>
+            {/* Full Table */}
+            <Box sx={{ mb: 6 }}>
+              <Typography variant="h4" fontWeight={700} mb={2}>
+                Complete Rankings
+              </Typography>
 
-                <div className="achievement-card">
-                  <div className="achievement-icon">🔥</div>
-                  <h4>Streak Legend</h4>
-                  <p>30-day learning streak</p>
-                  <small>Earned by Sarah Kim</small>
-                </div>
+              <Paper elevation={3}>
+                {leaderboardData.map((user, index) => (
+                  <Box
+                    key={user.id}
+                    sx={{
+                      p: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderBottom:
+                        index < leaderboardData.length - 1
+                          ? '1px solid #eee'
+                          : 'none',
+                      bgcolor: user.isCurrentUser ? 'rgba(25,118,210,0.1)' : '',
+                    }}
+                  >
+                    <Typography
+                      width="50px"
+                      textAlign="center"
+                      fontWeight={700}
+                    >
+                      {getRankIcon(user.rank)}
+                    </Typography>
 
-                <div className="achievement-card">
-                  <div className="achievement-icon">🎯</div>
-                  <h4>Goal Crusher</h4>
-                  <p>Completed 3 learning goals</p>
-                  <small>Earned by Mike Chen</small>
-                </div>
-              </div>
-            </div>
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      flex={1}
+                      alignItems="center"
+                    >
+                      <Typography fontSize={24}>{user.avatar}</Typography>
+
+                      <Box>
+                        <Typography fontWeight={600}>
+                          {user.name}
+                          {user.isCurrentUser && (
+                            <Typography component="span" variant="body2">
+                              {' '}
+                              (You)
+                            </Typography>
+                          )}
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    <Typography
+                      width="120px"
+                      textAlign="right"
+                      fontWeight={700}
+                    >
+                      {user.points.toLocaleString()}
+                    </Typography>
+
+                    <Chip
+                      label={`Level ${user.level}`}
+                      sx={{ mx: 2 }}
+                      size="small"
+                    />
+
+                    <Typography width="80px" textAlign="center">
+                      {user.completedChallenges}
+                    </Typography>
+                  </Box>
+                ))}
+              </Paper>
+            </Box>
+
+            {/* Achievements */}
+            <Box sx={{ mb: 6 }}>
+              <Typography variant="h4" fontWeight={700} mb={3}>
+                Top Achievements This Week
+              </Typography>
+
+              <Grid container spacing={3}>
+                {[
+                  {
+                    icon: '🚀',
+                    title: 'Challenge Master',
+                    text: 'Completed 5 challenges in one day',
+                    user: 'Alex Johnson',
+                  },
+                  {
+                    icon: '🔥',
+                    title: 'Streak Legend',
+                    text: '30-day learning streak',
+                    user: 'Sarah Kim',
+                  },
+                  {
+                    icon: '🎯',
+                    title: 'Goal Crusher',
+                    text: 'Completed 3 learning goals',
+                    user: 'Mike Chen',
+                  },
+                ].map((a, i) => (
+                  <Grid item xs={12} md={4} key={i}>
+                    <Card elevation={4} sx={{ borderRadius: 4, p: 3 }}>
+                      <Typography fontSize={40}>{a.icon}</Typography>
+
+                      <Typography variant="h6" fontWeight={700}>
+                        {a.title}
+                      </Typography>
+
+                      <Typography fontSize={14} sx={{ opacity: 0.7 }}>
+                        {a.text}
+                      </Typography>
+
+                      <Typography variant="body2" sx={{ mt: 1, opacity: 0.6 }}>
+                        Earned by {a.user}
+                      </Typography>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
           </>
         )}
-      </div>
-    </div>
+      </Container>
+    </Box>
   );
 };
 

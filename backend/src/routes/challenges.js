@@ -19,7 +19,7 @@ router.post(
   '/',
   auth,
   challengeValidation,
-  challengeController.createChallenge,
+  challengeController.createChallenge
 );
 
 // TODO: Add PUT /:id route for updating challenge (admin only)
@@ -27,7 +27,7 @@ router.put(
   '/:id',
   auth,
   challengeUpdateValidation,
-  challengeController.updateChallenge,
+  challengeController.updateChallenge
 );
 
 // TODO: Add DELETE /:id route for deleting challenge (admin only)
@@ -35,5 +35,8 @@ router.delete('/:id', auth, challengeController.deleteChallenge);
 
 // Mark a challenge as completed
 router.post('/:id/complete', auth, challengeController.completeChallenge);
+
+// Mark a challenge as incomplete (remove completion)
+router.delete('/:id/complete', auth, challengeController.uncompleteChallenge);
 
 module.exports = router;

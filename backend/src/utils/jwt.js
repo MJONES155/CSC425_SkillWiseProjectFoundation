@@ -6,7 +6,7 @@ const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 module.exports = {
   generateToken: (payload) =>
-    jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' }),
+    jwt.sign(payload, JWT_SECRET, { expiresIn: '2h' }),
   generateRefreshToken: (payload) =>
     jwt.sign(payload, REFRESH_SECRET, { expiresIn: '7d' }),
   verifyToken: (token) => jwt.verify(token, JWT_SECRET),

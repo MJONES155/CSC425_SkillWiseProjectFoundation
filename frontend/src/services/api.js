@@ -171,6 +171,10 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
           console.log('✅ Token refreshed successfully');
+
+          // Dispatch token refresh event for AuthContext to refresh user profile
+          window.dispatchEvent(new CustomEvent('auth:token-refreshed'));
+
           return api(originalRequest);
         } else {
           throw new Error('No access token received from refresh');
@@ -295,6 +299,7 @@ export const apiService = {
     updateProfile: (data) => api.put('/users/profile', data),
     deleteAccount: () => api.delete('/users/profile'),
     changePassword: (data) => api.put('/users/change-password', data),
+    getStatistics: () => api.get('/users/statistics'),
   },
 
   // Goals methods
@@ -317,6 +322,7 @@ export const apiService = {
       api.post(`/challenges/${id}/submit`, submission),
     getSubmissions: (id) => api.get(`/challenges/${id}/submissions`),
     complete: (id) => api.post(`/challenges/${id}/complete`),
+    uncomplete: (id) => api.delete(`/challenges/${id}/complete`),
   },
 
   // Progress methods
@@ -331,6 +337,7 @@ export const apiService = {
   leaderboard: {
     getGlobal: (params) => api.get('/leaderboard/global', { params }),
     getUserRank: () => api.get('/leaderboard/user-rank'),
+    getAchievements: () => api.get('/leaderboard/achievements'),
   },
 
   // Peer Review methods
