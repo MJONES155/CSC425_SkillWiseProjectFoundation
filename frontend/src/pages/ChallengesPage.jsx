@@ -3,7 +3,12 @@ import React, { useState, useEffect } from 'react';
 import ChallengeCard from '../components/challenges/ChallengeCard';
 import ChallengeForm from '../components/challenges/ChallengeForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import AIGenerateChallengeModal from '../components/common/aiChallengeModal';
+import AIFeedbackForm from '../components/common/aiFeedbackForm';
+import SubmissionHistoryModal from '../components/common/SubmissionHistoryModal';
+import Dialog from '@mui/material/Dialog';
 import { apiService } from '../services/api';
+import * as Sentry from '@sentry/react';
 
 const ChallengesPage = () => {
   const [challenges, setChallenges] = useState([]);
@@ -12,6 +17,14 @@ const ChallengesPage = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiChallenge, setAiChallenge] = useState(null);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [selectedChallenge, setSelectedChallenge] = useState(null);
+  const [showSubmissionHistory, setShowSubmissionHistory] = useState(false);
+  const [goals, setGoals] = useState([]);
+  const [selectedGoalId, setSelectedGoalId] = useState(null);
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
@@ -29,13 +42,26 @@ const ChallengesPage = () => {
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to load challenges.');
       console.error('Error loading challenges:', e);
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
   };
 
+  const loadGoals = async () => {
+    try {
+      const res = await apiService.goals.getAll();
+      const goalsData = res.data?.data ?? res.data ?? [];
+      setGoals(goalsData);
+    } catch (e) {
+      console.error('Error loading goals:', e);
+      Sentry.captureException(e);
+    }
+  };
+
   useEffect(() => {
     loadChallenges();
+    loadGoals();
   }, []);
 
   // Filter challenges based on current filters
@@ -45,7 +71,7 @@ const ChallengesPage = () => {
     if (filters.category) {
       filtered = filtered.filter(
         (challenge) =>
-          challenge.category?.toLowerCase() === filters.category.toLowerCase(),
+          challenge.category?.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
@@ -53,7 +79,7 @@ const ChallengesPage = () => {
       filtered = filtered.filter(
         (challenge) =>
           challenge.difficulty?.toLowerCase() ===
-          filters.difficulty.toLowerCase(),
+          filters.difficulty.toLowerCase()
       );
     }
 
@@ -67,8 +93,8 @@ const ChallengesPage = () => {
             ?.toLowerCase()
             .includes(filters.search.toLowerCase()) ||
           challenge.tags?.some((tag) =>
-            tag.toLowerCase().includes(filters.search.toLowerCase()),
-          ),
+            tag.toLowerCase().includes(filters.search.toLowerCase())
+          )
       );
     }
 
@@ -100,6 +126,7 @@ const ChallengesPage = () => {
       } catch (e) {
         setError(e.response?.data?.message || 'Failed to delete challenge.');
         console.error('Error deleting challenge:', e);
+        Sentry.captureException(e);
       }
     }
   };
@@ -112,6 +139,7 @@ const ChallengesPage = () => {
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to complete challenge.');
       console.error('Error completing challenge:', e);
+      Sentry.captureException(e);
     }
   };
 
@@ -129,12 +157,86 @@ const ChallengesPage = () => {
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to save challenge.');
       console.error('Error saving challenge:', e);
+      Sentry.captureException(e);
     }
   };
 
+  // Missing close handler (referenced by ChallengeForm) causing ReferenceError
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingChallenge(null);
+  };
+
+  const handleGenerateAIChallenge = async () => {
+    try {
+      setAiLoading(true);
+
+      const params = selectedGoalId ? { goalId: selectedGoalId } : {};
+      const res = await apiService.ai.getSuggestions(params);
+
+      setAiChallenge(res.data);
+    } catch (e) {
+      console.error('AI challenge generation error:', e);
+      setError(e.response?.data?.message || 'Failed to generate AI challenge.');
+      Sentry.captureException(e);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAcceptAIChallenge = async () => {
+    if (!aiChallenge) return;
+
+    try {
+      const challengeData = {
+        ...aiChallenge,
+        isAI: true,
+      };
+
+      // If a goal was selected, tag the challenge with that goal
+      if (selectedGoalId) {
+        challengeData.tags = [
+          ...(aiChallenge.tags || []),
+          `goal:${selectedGoalId}`,
+        ];
+      }
+
+      await apiService.challenges.create(challengeData);
+
+      setShowAIModal(false);
+      setAiChallenge(null);
+      setSelectedGoalId(null);
+      await loadChallenges();
+    } catch (e) {
+      console.error('Failed to save AI challenge:', e);
+      setError(e.response?.data?.message || 'Failed to save challenge.');
+      Sentry.captureException(e);
+    }
+  };
+
+  const handleRegenerateAIChallenge = () => {
+    handleGenerateAIChallenge();
+  };
+
+  const handleHFAIModal = () => {
+    setShowAIModal(true);
+    setAiChallenge(null);
+    setSelectedGoalId(null);
+  };
+
+  const handleOpenFeedback = (challenge) => {
+    setSelectedChallenge(challenge);
+    setShowFeedbackForm(true);
+  };
+
+  const handleViewSubmissions = (challenge) => {
+    setSelectedChallenge(challenge);
+    setShowSubmissionHistory(true);
+  };
+
+  const handleCloseFeedback = () => {
+    setSelectedChallenge(null);
+    setShowFeedbackForm(false);
   };
 
   return (
@@ -142,8 +244,20 @@ const ChallengesPage = () => {
       <div className="page-header">
         <h1>Learning Challenges</h1>
         <p>Enhance your skills with hands-on learning experiences</p>
-        <button className="btn-primary" onClick={handleCreateChallenge} data-test="create-challenge-button">
+        <button
+          className="btn-primary"
+          onClick={handleCreateChallenge}
+          data-test="create-challenge-button"
+        >
           Create New Challenge
+        </button>
+
+        <button
+          className="btn-secondary"
+          onClick={handleHFAIModal}
+          data-test="generate-ai-challenge-button"
+        >
+          Generate AI Challenge
         </button>
       </div>
 
@@ -213,6 +327,8 @@ const ChallengesPage = () => {
                 onEdit={handleEditChallenge}
                 onDelete={handleDeleteChallenge}
                 onComplete={handleCompleteChallenge}
+                onFeedback={handleOpenFeedback}
+                onViewSubmissions={handleViewSubmissions}
               />
             ))}
           </div>
@@ -239,6 +355,48 @@ const ChallengesPage = () => {
           initialChallenge={editingChallenge}
         />
       )}
+      {showAIModal && (
+        <AIGenerateChallengeModal
+          open={showAIModal}
+          onClose={() => {
+            setShowAIModal(false);
+            setAiChallenge(null);
+            setSelectedGoalId(null);
+          }}
+          loading={aiLoading}
+          challenge={aiChallenge}
+          onAccept={handleAcceptAIChallenge}
+          onRegenerate={handleRegenerateAIChallenge}
+          goals={goals}
+          selectedGoalId={selectedGoalId}
+          onGoalChange={setSelectedGoalId}
+          onGenerate={handleGenerateAIChallenge}
+        />
+      )}
+      <Dialog
+        open={showFeedbackForm}
+        onClose={handleCloseFeedback}
+        fullWidth
+        maxWidth="sm"
+      >
+        <AIFeedbackForm
+          challenge={selectedChallenge}
+          onClose={handleCloseFeedback}
+          onSuccess={async () => {
+            try {
+              await Promise.all([loadChallenges(), loadGoals()]);
+            } catch (e) {
+              console.error('Refetch challenges/goals failed:', e);
+            }
+          }}
+        />
+      </Dialog>
+
+      <SubmissionHistoryModal
+        open={showSubmissionHistory}
+        onClose={() => setShowSubmissionHistory(false)}
+        challenge={selectedChallenge}
+      />
     </div>
   );
 };

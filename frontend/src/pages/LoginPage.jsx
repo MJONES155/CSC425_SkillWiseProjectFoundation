@@ -1,10 +1,12 @@
-// TODO: Implement login page with form handling
+// src/pages/LoginPage.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import LoginForm from '../components/auth/LoginForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import '../styles/LoginPage.css';
+import * as Sentry from '@sentry/react';
+
+import { Box, Paper, Typography, Grid, Link, Alert } from '@mui/material';
 
 const LoginPage = () => {
   const [error, setError] = useState('');
@@ -13,7 +15,6 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Redirect to intended page after login
   const from = location.state?.from?.pathname || '/dashboard';
 
   const handleLogin = async (formData) => {
@@ -30,62 +31,63 @@ const LoginPage = () => {
         navigate(from, { replace: true });
       } else {
         setError(result.error || 'Login failed. Please try again.');
+        Sentry.captureException(new Error(result.error || 'Login failed'));
       }
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
+      Sentry.captureException(err);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <h2>Welcome Back</h2>
-            <p>Sign in to continue your learning journey</p>
-          </div>
+    <Box sx={{ minHeight: '200vh', bgcolor: '#f5f5f5', py: 6 }}>
+      <Grid container justifyContent="center" spacing={4}>
+        {/* Form Section */}
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 4 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h4" component="h2" gutterBottom>
+                Welcome Back
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Sign in to continue your learning journey
+              </Typography>
+            </Box>
 
-          {error && (
-            <div className="error-message">
-              <p>{error}</p>
-            </div>
-          )}
+            {error && (
+              <Box sx={{ mb: 2, p: 2, bgcolor: '#fdecea', borderRadius: 1 }}>
+                <Typography variant="body2" color="error">
+                  {error}
+                </Typography>
+              </Box>
+            )}
 
-          {isLoading ? (
-            <LoadingSpinner message="Signing you in..." />
-          ) : (
-            <LoginForm onSubmit={handleLogin} />
-          )}
+            {isLoading ? (
+              <LoadingSpinner message="Signing you in..." />
+            ) : (
+              <LoginForm onSubmit={handleLogin} />
+            )}
 
-          <div className="auth-footer">
-            <p>
-              Don't have an account?{' '}
-              <Link to="/signup" className="auth-link">
-                Sign up here
-              </Link>
-            </p>
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="body2">
+                Don’t have an account?{' '}
+                <Link component={RouterLink} to="/signup">
+                  Sign up here
+                </Link>
+              </Typography>
 
-            <p>
-              <Link to="/forgot-password" className="auth-link">
-                Forgot your password?
-              </Link>
-            </p>
-          </div>
-        </div>
-
-        <div className="auth-background">
-          <div className="auth-testimonial">
-            <blockquote>
-              "SkillWise transformed how I learn. The AI feedback is incredibly
-              helpful!"
-            </blockquote>
-            <cite>— Sarah K., Software Developer</cite>
-          </div>
-        </div>
-      </div>
-    </div>
+              <Typography variant="body2" mt={1}>
+                <Link component={RouterLink} to="/forgot-password">
+                  Forgot your password?
+                </Link>
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

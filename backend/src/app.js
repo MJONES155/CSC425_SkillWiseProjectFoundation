@@ -1,4 +1,13 @@
 // TODO: Main Express application setup with middleware and routing
+const Sentry = require('@sentry/node');
+let profiling;
+try {
+  // Optional: profiling integration; skip if module unavailable
+  // eslint-disable-next-line global-require
+  ({ profilingIntegration: profiling } = require('@sentry/profiling-node'));
+} catch (e) {
+  profiling = null;
+}
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -30,6 +39,38 @@ const logger = pino({
   },
 });
 
+// Initialize Sentry as early as possible (only if valid DSN provided)
+const sentryDsn = process.env.SENTRY_DSN;
+const isSentryEnabled =
+  sentryDsn &&
+  sentryDsn !== 'your-sentry-dsn-url' &&
+  sentryDsn.startsWith('http');
+
+if (isSentryEnabled) {
+  Sentry.init({
+    dsn: sentryDsn,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: process.env.SENTRY_TRACES_SAMPLE_RATE
+      ? parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE)
+      : 1.0,
+    profilesSampleRate: process.env.SENTRY_PROFILES_SAMPLE_RATE
+      ? parseFloat(process.env.SENTRY_PROFILES_SAMPLE_RATE)
+      : 0.1,
+    integrations: profiling ? [profiling()] : [],
+  });
+  console.log(
+    '✅ Sentry initialized for environment:',
+    process.env.NODE_ENV || 'development'
+  );
+
+  // Request handler must be the first middleware on the app
+  app.use(Sentry.Handlers.requestHandler());
+  // Tracing handler creates a trace for every incoming request
+  app.use(Sentry.Handlers.tracingHandler());
+} else {
+  console.log('⚠️  Sentry disabled: no valid DSN provided');
+}
+
 // Add request logging middleware
 app.use(
   pinoHttp({
@@ -48,7 +89,7 @@ app.use(
         statusCode: res.statusCode,
       }),
     },
-  }),
+  })
 );
 
 // Security middleware
@@ -57,13 +98,13 @@ app.use(
     crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: ['\'self\''],
-        styleSrc: ['\'self\'', '\'unsafe-inline\''],
-        scriptSrc: ['\'self\''],
-        imgSrc: ['\'self\'', 'data:', 'https:'],
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
       },
     },
-  }),
+  })
 );
 
 // CORS configuration
@@ -73,21 +114,25 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  }),
+  })
 );
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000, // limit each IP to 100 requests per windowMs
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10000, // limit each IP to 10000 requests per windowMs
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: Math.ceil(
-      (parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000) / 1000,
+      (parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000) / 1000
     ),
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => {
+    // Skip rate limiting for health checks and static assets
+    return req.path === '/healthz' || req.path.startsWith('/static');
+  },
 });
 
 app.use(limiter);
@@ -97,14 +142,14 @@ app.use(
   express.json({
     limit: '10mb',
     strict: true,
-  }),
+  })
 );
 
 app.use(
   express.urlencoded({
     extended: true,
     limit: '10mb',
-  }),
+  })
 );
 
 // Cookie parsing middleware
@@ -132,6 +177,11 @@ app.use('*', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Sentry error handler should be before any other error middleware (only if enabled)
+if (isSentryEnabled) {
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 // Global error handler (must be last)
 app.use(errorHandler);

@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AIService generateFeedback should generate meaningful feedback and match snapshot 1`] = `
+{
+  "confidenceScore": 0.85,
+  "feedbackText": "Great work on implementing the function! Your code demonstrates good understanding of JavaScript fundamentals.",
+  "feedbackType": "general",
+  "improvements": [
+    "Consider edge cases",
+    "Add more comments",
+    "Optimize loop performance",
+  ],
+  "overallScore": 85,
+  "processingTimeMs": 0,
+  "strengths": [
+    "Clear variable naming",
+    "Proper error handling",
+    "Good code structure",
+  ],
+  "suggestions": [
+    "Try using map instead of forEach",
+    "Extract validation to a separate function",
+    "Add unit tests",
+  ],
+}
+`;
+
+exports[`AIService generateFeedback should handle API errors gracefully 1`] = `
+{
+  "confidenceScore": 0,
+  "feedbackText": "Error while generating AI feedback.",
+  "feedbackType": "general",
+  "improvements": [],
+  "processingTimeMs": null,
+  "strengths": [],
+  "suggestions": [],
+}
+`;
+
+exports[`AIService generateFeedback should handle feedback with previous attempts and match snapshot 1`] = `
+{
+  "confidenceScore": 0.92,
+  "feedbackText": "Excellent improvement! You addressed the validation issues from the previous attempt.",
+  "feedbackType": "general",
+  "improvements": [
+    "Add type checking",
+    "Consider performance optimization",
+  ],
+  "overallScore": 92,
+  "processingTimeMs": 0,
+  "strengths": [
+    "Implemented input validation",
+    "Fixed error handling",
+    "Improved code readability",
+  ],
+  "suggestions": [
+    "Use TypeScript for better type safety",
+    "Add JSDoc comments",
+  ],
+}
+`;
+
+exports[`AIService generateHints should provide contextual hints and match snapshot 1`] = `
+{
+  "hints": [
+    "Check your loop boundaries to avoid off-by-one errors",
+    "Consider what happens when the array is empty",
+    "Think about whether you need to modify the original array",
+  ],
+}
+`;
+
+exports[`AIService generateHints should return fallback hints on API error 1`] = `
+{
+  "hints": [
+    "Break the problem into smaller steps.",
+    "Check for off-by-one errors or missing conditions.",
+    "Compare your approach with a simpler baseline.",
+  ],
+}
+`;
+
+exports[`AIService suggestNextChallenges should generate challenge suggestion and match snapshot 1`] = `
+{
+  "category": "programming",
+  "description": "Create a command-line todo list to practice CRUD operations",
+  "difficulty": "medium",
+  "estimatedTimeMinutes": 45,
+  "instructions": "Implement add, remove, list, and complete functions. Submit a single .js file.",
+  "maxAttempts": 3,
+  "pointsReward": 75,
+  "title": "Build a Todo List Manager",
+}
+`;

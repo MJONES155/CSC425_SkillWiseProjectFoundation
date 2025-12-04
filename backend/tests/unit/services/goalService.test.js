@@ -1,5 +1,5 @@
 // TODO: Implement goal service unit tests
-const goalService = require('../../src/services/goalService');
+const goalService = require('../../../src/services/goalService');
 
 describe('GoalService', () => {
   describe('createGoal', () => {

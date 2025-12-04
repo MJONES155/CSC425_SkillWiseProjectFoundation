@@ -2,6 +2,7 @@
 //Partially Complete: updateProfile, getProfile, and deleteAccount logical
 const userService = require('../services/userService');
 const jwt = require('jsonwebtoken');
+const Sentry = require('@sentry/node');
 
 const userController = {
   // TODO: Get user profile
@@ -16,6 +17,7 @@ const userController = {
 
       res.status(200).json({ success: true, data: user });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -36,6 +38,7 @@ const userController = {
         data: updatedUser,
       });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },
@@ -57,6 +60,7 @@ const userController = {
         .status(200)
         .json({ success: true, message: 'Account deleted successfully' });
     } catch (error) {
+      Sentry.captureException(error);
       next(error);
     }
   },

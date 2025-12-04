@@ -13,6 +13,13 @@ router.get('/:id', auth, submissionController.getSubmission);
 // TODO: Add GET /user/:userId route for user submissions
 router.get('/user/:userId', auth, submissionController.getUserSubmissions);
 
+// Get user's submissions for a specific challenge
+router.get(
+  '/challenge/:challengeId',
+  auth,
+  submissionController.getUserChallengeSubmissions
+);
+
 // TODO: Add PUT /:id route for updating submission
 router.put('/:id', auth, submissionController.updateSubmission);
 

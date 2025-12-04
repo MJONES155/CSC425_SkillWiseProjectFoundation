@@ -19,7 +19,7 @@
 
 .logout-button {
   padding: 0.5rem 1rem;
-  background-color: #dc3545;
+  background-color: #4381bb;
   color: white;
   border: none;
   border-radius: 4px;
@@ -29,9 +29,9 @@
 }
 
 .logout-button:hover {
-  background-color: #c82333;
+  background-color: #3a6fa1;
 }
 
 .logout-button:active {
-  background-color: #bd2130;
+  background-color: #2e5a82;
 }

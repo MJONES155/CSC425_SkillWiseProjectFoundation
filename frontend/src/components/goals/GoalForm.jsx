@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import './GoalForm.css';
 
 // Props:
@@ -15,26 +16,36 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
   });
 
   useEffect(() => {
-    if (initialGoal) {
-      setFormData({
-        title: initialGoal.title || '',
-        description: initialGoal.description || '',
-        category: initialGoal.category || '',
-        difficulty: initialGoal.difficulty || 'Medium',
-        // Convert ISO date to YYYY-MM-DD for input[type=date]
-        targetCompletionDate: initialGoal.targetCompletionDate
-          ? new Date(initialGoal.targetCompletionDate)
-            .toISOString()
-            .slice(0, 10)
-          : '',
-      });
+    try {
+      if (initialGoal) {
+        setFormData({
+          title: initialGoal.title || '',
+          description: initialGoal.description || '',
+          category: initialGoal.category || '',
+          difficulty: initialGoal.difficulty || 'Medium',
+          // Convert ISO date to YYYY-MM-DD for input[type=date]
+          targetCompletionDate: initialGoal.targetCompletionDate
+            ? new Date(initialGoal.targetCompletionDate)
+                .toISOString()
+                .slice(0, 10)
+            : '',
+        });
+      }
+    } catch (error) {
+      console.error('Error setting initial goal data:', error);
+      Sentry.captureException(error);
     }
   }, [initialGoal]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (typeof onSubmit === 'function') {
-      onSubmit(formData);
+    try {
+      e.preventDefault();
+      if (typeof onSubmit === 'function') {
+        onSubmit(formData);
+      }
+    } catch (error) {
+      console.error('Goal form submission error:', error);
+      Sentry.captureException(error);
     }
   };
 
@@ -43,7 +54,12 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
       <div className="goal-form-modal">
         <div className="modal-header">
           <h2>{initialGoal ? 'Edit Goal' : 'Create New Goal'}</h2>
-          <button className="close-btn" onClick={onClose} type="button" data-test="close-goal-form">
+          <button
+            className="close-btn"
+            onClick={onClose}
+            type="button"
+            data-test="close-goal-form"
+          >
             ×
           </button>
         </div>
@@ -127,10 +143,19 @@ const GoalForm = ({ onSubmit, onClose, initialGoal }) => {
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose} data-test="cancel-goal-form">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onClose}
+              data-test="cancel-goal-form"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary" data-test="submit-goal-form">
+            <button
+              type="submit"
+              className="btn-primary"
+              data-test="submit-goal-form"
+            >
               {initialGoal ? 'Update Goal' : 'Create Goal'}
             </button>
           </div>

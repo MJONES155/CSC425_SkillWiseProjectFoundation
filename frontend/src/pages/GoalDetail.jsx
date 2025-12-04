@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { apiService } from '../services/api';
 import ChallengeCard from '../components/challenges/ChallengeCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import * as Sentry from '@sentry/react';
 
 const GoalDetail = () => {
   const { id } = useParams();
@@ -24,6 +25,7 @@ const GoalDetail = () => {
       setChallenges(challengesRes.data?.data ?? challengesRes.data ?? []);
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to load goal details');
+      Sentry.captureException(e);
     } finally {
       setLoading(false);
     }
@@ -40,6 +42,7 @@ const GoalDetail = () => {
       await load();
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to complete challenge.');
+      Sentry.captureException(e);
     }
   };
 

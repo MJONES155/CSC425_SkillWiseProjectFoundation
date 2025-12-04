@@ -1,5 +1,5 @@
 // TODO: Implement JWT utility unit tests
-const jwt = require('../../src/utils/jwt');
+const jwt = require('../../../src/utils/jwt');
 
 describe('JWT Utils', () => {
   describe('generateToken', () => {

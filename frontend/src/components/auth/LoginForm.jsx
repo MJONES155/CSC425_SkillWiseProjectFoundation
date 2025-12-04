@@ -1,5 +1,7 @@
-// TODO: Implement login form component
+// src/components/auth/LoginForm.jsx
 import React, { useState } from 'react';
+import * as Sentry from '@sentry/react';
+import { Box, TextField, Button, Alert, Stack } from '@mui/material';
 
 const LoginForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -7,49 +9,62 @@ const LoginForm = ({ onSubmit }) => {
     password: '',
   });
 
-  // TODO: Add form validation, error handling, loading state
-  const handleSubmit = (e) => {
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    if (onSubmit) {
-      onSubmit(formData); // pass the email and password up to LoginPage
+    try {
+      if (onSubmit) {
+        await onSubmit(formData);
+      }
+    } catch (err) {
+      console.error('Login form submission error:', err);
+      setError(err.message || 'An error occurred during login.');
+      Sentry.captureException(err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="login-form">
-      <h2>Login to SkillWise</h2>
+    <Box component="form" onSubmit={handleSubmit} noValidate>
+      <Stack spacing={2}>
+        {error && <Alert severity="error">{error}</Alert>}
 
-      <div className="form-group">
-        <label htmlFor="email">Email</label>
-        <input
+        <TextField
+          label="Email"
           type="email"
-          id="email"
-          data-test="email"
+          variant="outlined"
+          fullWidth
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
+          inputProps={{ 'data-test': 'email' }}
         />
-      </div>
 
-      <div className="form-group">
-        <label htmlFor="password">Password</label>
-        <input
+        <TextField
+          label="Password"
           type="password"
-          id="password"
-          data-test="password"
+          variant="outlined"
+          fullWidth
           value={formData.password}
           onChange={(e) =>
             setFormData({ ...formData, password: e.target.value })
           }
           required
+          inputProps={{ 'data-test': 'password' }}
         />
-      </div>
 
-      <button type="submit" className="btn-primary" data-test="login-button">
-        Login
-      </button>
-    </form>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          size="large"
+          data-test="login-button"
+        >
+          Login
+        </Button>
+      </Stack>
+    </Box>
   );
 };
 

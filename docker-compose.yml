@@ -7,14 +7,14 @@ services:
       POSTGRES_DB: skillwise_db
       POSTGRES_USER: skillwise_user
       POSTGRES_PASSWORD: skillwise_pass
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8'
     ports:
-      - "5433:5432"
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/database/migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U skillwise_user -d skillwise_db"]
+      test: ['CMD-SHELL', 'pg_isready -U skillwise_user -d skillwise_db']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,12 +27,12 @@ services:
     image: redis:7-alpine
     container_name: skillwise_redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -46,7 +46,9 @@ services:
       dockerfile: Dockerfile.dev
     container_name: skillwise_backend
     ports:
-      - "3001:3001"
+      - '3001:3001'
+    env_file:
+      - ./backend/.env
     environment:
       # Server Configuration
       - NODE_ENV=development
@@ -88,9 +90,6 @@ services:
 
       # Redis Configuration
       - REDIS_URL=redis://redis:6379
-
-      # Monitoring
-      - SENTRY_DSN=${SENTRY_DSN:-your-sentry-dsn-url}
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -112,7 +111,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: skillwise_frontend
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - REACT_APP_API_URL=http://localhost:3001/api
       - REACT_APP_ENVIRONMENT=development

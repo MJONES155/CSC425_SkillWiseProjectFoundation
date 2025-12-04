@@ -1,5 +1,5 @@
 // TODO: Implement validation middleware unit tests
-const validation = require('../../src/middleware/validation');
+const validation = require('../../../src/middleware/validation');
 
 describe('Validation Middleware', () => {
   describe('loginValidation', () => {

@@ -2,19 +2,80 @@
 const jwt = require('../utils/jwt');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+const Sentry = require('@sentry/node');
+const securityEvents = require('./securityEvents');
 const prisma = new PrismaClient();
+
+// In-memory tracking of failed attempts (simple baseline; replace with Redis for distributed)
+const failedAttempts = new Map(); // key: email, value: count
+const MAX_FAILED_BEFORE_NOTICE = parseInt(
+  process.env.MAX_FAILED_LOGIN_NOTICE || '3'
+);
+
+function recordFailedAttempt(email, reason) {
+  const current = failedAttempts.get(email) || 0;
+  const next = current + 1;
+  failedAttempts.set(email, next);
+  const payload = {
+    email,
+    reason,
+    attempts: next,
+    timestamp: new Date().toISOString(),
+  };
+  // Emit internal event for optional listeners (e.g., metrics, alerts)
+  securityEvents.emit('invalid-login', payload);
+  // Lightweight Sentry message (not an exception)
+  Sentry.captureMessage(`Invalid login attempt: ${reason}`, {
+    level: 'warning',
+    extra: { email, attempts: next },
+  });
+  // Escalation hook if threshold exceeded (future: notify, captcha, lockout)
+  if (next === MAX_FAILED_BEFORE_NOTICE) {
+    securityEvents.emit('account-lockout', {
+      email,
+      reason: 'threshold-reached',
+      timestamp: new Date().toISOString(),
+    });
+    Sentry.captureMessage('Login failure threshold reached', {
+      level: 'info',
+      extra: { email, attempts: next },
+    });
+  }
+}
 
 const authService = {
   // TODO: Implement user login logic
   login: async (email, password) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new Error('There is no account associated with that email');
+      recordFailedAttempt(email, 'unknown-email');
+      const err = new Error('There is no account associated with that email');
+      console.error('🚨 Invalid login attempt - unknown email:', {
+        email,
+        timestamp: new Date().toISOString(),
+      });
+      Sentry.captureException(err, {
+        level: 'error',
+        extra: { email, reason: 'unknown-email' },
+        tags: { area: 'auth', type: 'invalid-login' },
+      });
+      throw err;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new Error('Invalid password');
+      recordFailedAttempt(email, 'wrong-password');
+      const err = new Error('Invalid password');
+      console.error('🚨 Invalid login attempt - wrong password:', {
+        email,
+        timestamp: new Date().toISOString(),
+      });
+      Sentry.captureException(err, {
+        level: 'error',
+        extra: { email, reason: 'wrong-password' },
+        tags: { area: 'auth', type: 'invalid-login' },
+      });
+      throw err;
     }
 
     const accessToken = jwt.generateToken({ id: user.id, email: user.email });
@@ -80,6 +141,11 @@ const authService = {
         },
       });
     } catch (err) {
+      Sentry.captureException(err, {
+        level: 'error',
+        extra: { email, reason: 'prisma-create-failure' },
+        tags: { area: 'auth', type: 'registration-failure' },
+      });
       console.error('🛠️ Prisma create user error:', {
         message: err.message,
         code: err.code,
@@ -115,6 +181,8 @@ const authService = {
       //Return Token
       return { accessToken, refreshToken: newRefreshToken };
     } catch (error) {
+      Sentry.captureException(error);
+      console.error('🚨 Refresh token error:', error);
       throw new Error('Invalid or expired refresh token');
     }
   },

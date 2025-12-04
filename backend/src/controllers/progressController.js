@@ -1,5 +1,6 @@
 // Progress tracking controller
 const progressService = require('../services/progressService');
+const Sentry = require('@sentry/node');
 
 const ok = (res, data, message = 'ok') =>
   res.status(200).json({ success: true, message, data });
@@ -18,6 +19,7 @@ const progressController = {
       });
       return ok(res, { summary, recentActivity: activity }, 'progress');
     } catch (err) {
+      Sentry.captureException(err);
       return handleErr(next, err);
     }
   },
@@ -29,6 +31,7 @@ const progressController = {
       const summary = await progressService.calculateOverallProgress(userId);
       return ok(res, summary, 'overview');
     } catch (err) {
+      Sentry.captureException(err);
       return handleErr(next, err);
     }
   },
@@ -44,6 +47,7 @@ const progressController = {
       });
       return ok(res, activity, 'activity');
     } catch (err) {
+      Sentry.captureException(err);
       return handleErr(next, err);
     }
   },
@@ -61,10 +65,11 @@ const progressController = {
       const event = await progressService.trackEvent(
         userId,
         eventType,
-        eventData,
+        eventData
       );
       return created(res, event, 'event_tracked');
     } catch (err) {
+      Sentry.captureException(err);
       return handleErr(next, err);
     }
   },
@@ -76,10 +81,11 @@ const progressController = {
       const { timeframe } = req.query;
       const analytics = await progressService.generateAnalytics(
         userId,
-        timeframe,
+        timeframe
       );
       return ok(res, analytics, 'analytics');
     } catch (err) {
+      Sentry.captureException(err);
       return handleErr(next, err);
     }
   },
@@ -91,6 +97,7 @@ const progressController = {
       const milestones = await progressService.checkMilestones(userId);
       return ok(res, milestones, 'milestones');
     } catch (err) {
+      Sentry.captureException(err);
       return handleErr(next, err);
     }
   },
@@ -103,6 +110,7 @@ const progressController = {
       const skills = await progressService.getSkills(userId, { timeframe });
       return ok(res, skills, 'skills');
     } catch (err) {
+      Sentry.captureException(err);
       return handleErr(next, err);
     }
   },
